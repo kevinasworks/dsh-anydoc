@@ -55,20 +55,37 @@ DSH 的模型可以直接读文本文件，但 `.docx` / `.xlsx` / `.pptx` / `.p
 
 插件以 DSH 官方 Bundle 方式安装，不修改 DSH 核心源码，也不手改 profile 文件。
 
-在 DSH 中让 Agent 调用 `plugin_manager`：
+### 通过 GitHub 安装（推荐）
+
+1. 打开 DSH 的「插件」页面，点击「添加插件」。
+2. 在输入框中粘贴完整的 GitHub 仓库地址：
+
+   ```text
+   https://github.com/kevinasworks/dsh-anydoc
+   ```
+
+3. 点击「安装」，等待依赖下载完成，再启用插件。
+
+**请勿只输入 `dsh-anydoc`**：本项目尚未发布到 npm，按 npm 包名查找会提示「未找到相关插件」。GitHub Release 不等于 npm 发布，应使用上面的仓库地址。
+
+安装时需要能够访问 GitHub 和所选 npm 源，以获取插件源码、AnyDoc 依赖及对应平台的原生二进制；文档转换本身在本地离线执行。仓库不包含 `node_modules/`。若安装失败，请保留完整错误信息以便排查。
+
+### 从本地目录安装
+
+适合已下载或克隆源码的用户。先在插件目录安装运行依赖：
+
+```bash
+cd /path/to/dsh-anydoc
+npm install --omit=dev
+```
+
+随后在 DSH 中让 Agent 调用 `plugin_manager`，将 `target` 换成插件目录的实际绝对路径：
 
 ```json
 { "action": "install_bundle", "target": "/path/to/dsh-anydoc" }
 ```
 
-等价地，`target` 也接受 `link:` 绝对路径。安装过程由 `plugin_manager` 完成：写入 profile 的 `package.json` 依赖与 `dsh.profile.bundles`，链接本目录，并由 Loader 热加载。
-
-安装前请确认本目录已安装依赖（仓库内已包含 `node_modules/@firecrawl/anydoc`，如需重建）：
-
-```bash
-cd /path/to/dsh-anydoc
-npm install --omit=dev   # 只装 @firecrawl/anydoc 与对应平台的预编译二进制
-```
+`target` 也接受 `link:` 绝对路径。安装过程由 `plugin_manager` 完成：写入 profile 的 `package.json` 依赖与 `dsh.profile.bundles`，链接本目录，并由 Loader 热加载。Windows 用户请使用实际的 Windows 绝对路径，在 JSON 中将反斜杠写为 `\\`。
 
 > 说明：`@deepseek-ai/dsh-tools` 与 `@deepseek-ai/schemastery` 声明为 **optional peerDependency**。DSH 的 runtime resolution 会把这两个名字解析到当前安装的 DSH 内部包，插件目录里不需要、也不应该放它们的副本。`package.json` 中的 `devDependencies` 仅用于在本机跑自动化测试，运行时不使用。
 
