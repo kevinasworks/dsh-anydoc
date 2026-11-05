@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="AnyDoc document parsing">
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7fafc"/>
+      <stop offset="1" stop-color="#dbe6f2"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2f6fdd"/>
+      <stop offset="1" stop-color="#1b4bb0"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="124" height="124" rx="28" fill="#12315f"/>
+  <path d="M34 20h38l22 22v64a4 4 0 0 1-4 4H34a4 4 0 0 1-4-4V24a4 4 0 0 1 4-4z" fill="url(#page)"/>
+  <path d="M72 20l22 22H76a4 4 0 0 1-4-4V20z" fill="#b9cbe2"/>
+  <g fill="#2f5f9e">
+    <rect x="42" y="52" width="44" height="5" rx="2.5"/>
+    <rect x="42" y="64" width="34" height="5" rx="2.5"/>
+    <rect x="42" y="76" width="40" height="5" rx="2.5"/>
+  </g>
+  <g transform="translate(78 78)">
+    <circle cx="14" cy="14" r="16" fill="url(#mark)"/>
+    <path d="M14 6v13m0 0l-5.5-5.5M14 19l5.5-5.5" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M7 23h14" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round"/>
+  </g>
+</svg>

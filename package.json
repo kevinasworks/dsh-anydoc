@@ -1,0 +1,84 @@
+{
+  "name": "dsh-anydoc",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Local, offline document-to-Markdown parsing as native DeepSeek Harness tools for Windows 10+ x64 and Apple-silicon macOS, powered by Firecrawl AnyDoc.",
+  "author": "Kevin Zheng",
+  "license": "MIT",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "lib/*.js",
+    "locale/*.json",
+    "icon.svg",
+    "README.md",
+    "ARCHITECTURE.md",
+    "SOURCE_AUDIT.md",
+    "CONFIGURATION.md",
+    "PLATFORM_SUPPORT.md",
+    "TEST_REPORT.md",
+    "KNOWN_LIMITATIONS.md",
+    "CHANGELOG.md",
+    "THIRD_PARTY_NOTICES.md",
+    "licenses/*",
+    "PUBLISHING.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20",
+    "dsh": ">=0.2.0-rc.2 <0.2.1-0 || >=0.2.1-rc.2 <0.2.2-0 || >=0.2.2-rc.1 <0.2.3-0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": ">=0.2.0-rc.2 <0.2.1-0 || >=0.2.1-rc.2 <0.2.2-0 || >=0.2.2-rc.1 <0.2.3-0",
+    "@deepseek-ai/schemastery": "^3.18.5"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-tools": {
+      "optional": true
+    },
+    "@deepseek-ai/schemastery": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@firecrawl/anydoc": "0.2.4"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "compatibility": {
+      "dshReleases": {
+        "0.2.0-rc.2": "compatible",
+        "0.2.1-rc.5": "compatible",
+        "0.2.2-rc.1": "compatible"
+      }
+    }
+  },
+  "scripts": {
+    "test": "node test/run-tests.mjs",
+    "check:compat": "node test/check-compat.mjs",
+    "check:platforms": "node test/check-platforms.mjs",
+    "check:updates": "node test/check-updates.mjs"
+  },
+  "devDependencies": {
+    "@deepseek-ai/dsh-tools": "0.2.2-rc.1",
+    "@deepseek-ai/schemastery": "3.19.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kevinasworks/dsh-anydoc.git"
+  },
+  "homepage": "https://github.com/kevinasworks/dsh-anydoc#readme",
+  "bugs": {
+    "url": "https://github.com/kevinasworks/dsh-anydoc/issues"
+  }
+}

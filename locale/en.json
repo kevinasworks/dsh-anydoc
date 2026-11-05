@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "AnyDoc document parsing",
+    "description": "Converts Word, PowerPoint, Excel, OpenDocument, RTF, EPUB, CSV and PDF files into Markdown locally, without uploading documents."
+  }
+}

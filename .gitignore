@@ -1,0 +1,41 @@
+# Dependencies are installed per machine: the native AnyDoc binding is
+# platform-specific and must never be committed.
+node_modules/
+
+# Local audit evidence, baselines and pre-change snapshots (never published).
+.audit/
+.backup/
+
+# Packed artifacts produced by `npm pack` / `pnpm pack`.
+*.tgz
+
+# Operating-system noise.
+.DS_Store
+Thumbs.db
+
+# Local logs and conversion output.
+*.log
+npm-debug.log*
+.anydoc-output/
+
+# Private local configuration and credentials.
+.env
+.env.*
+!.env.example
+.npmrc
+*.local
+*.local.*
+*.pem
+*.key
+config.local/
+
+# Editor state and temporary files.
+.vscode/
+.idea/
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+._*

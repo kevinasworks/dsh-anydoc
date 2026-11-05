@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "AnyDoc 文档解析",
+    "description": "本地把 Word、PowerPoint、Excel、OpenDocument、RTF、EPUB、CSV 与 PDF 转换为 Markdown，不上传文档。"
+  }
+}

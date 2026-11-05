@@ -1,0 +1,9 @@
+# dsh-anydoc bundle patch.
+#
+# Registers the plugin row. The plugin is installed as a profile dependency by
+# `plugin_manager` (install_bundle), which links this directory into the profile
+# and appends "dsh-anydoc" to `dsh.profile.bundles`.
+- insert:
+    - id: anydoc
+      name: dsh-anydoc
+      config: {}
