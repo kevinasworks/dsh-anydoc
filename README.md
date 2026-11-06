@@ -134,23 +134,34 @@ format: docx (content) · 13,902 chars · 37,767 input bytes · 41 ms · engine:
 
 支持范围严格等于上游 `@firecrawl/anydoc@0.2.4` 的 7 个预编译目标；上游没有产物的一律不支持。
 
-**macOS（Apple 芯片）是本插件的主要平台**：作者自用，107 项测试与真实 Tool Call 都在该平台完成，功能与回归以它为准。其余平台跟随上游产物尽力支持，但不在日常验证范围内。
+**macOS（Apple 芯片）是作者日常使用的主要平台**，已有真实 DSH Tool Call 验证。其余受支持目标也已纳入持续集成，当前平台运行结果如下（Node.js 22）：
 
-| 平台 | 架构 | 状态 |
+| 平台 | 架构 | 验证状态 |
 | --- | --- | --- |
-| **macOS（Apple 芯片）** | arm64 | **完整支持，已实机运行**（107 项测试 + 真实 Tool Call） |
-| macOS（Rosetta / Intel） | x64 | x64 依赖链已在 Rosetta 下实测通过；**未在 Intel 实机验证** |
-| **Windows 10 / 11** | x64 | **代码与打包已就绪，未实机运行** |
-| Windows on ARM | arm64 | **不支持**：上游 AnyDoc 只发布 x64 绑定；`anydoc_capabilities` 会报 `platformSupport: unsupported` 并给出替代方案 |
-| Linux | x64 / arm64 | **产物齐备并已核验（ELF，glibc 与 musl），未在 Linux 实机运行** |
+| **macOS（Apple 芯片）** | arm64 | 本地真实 DSH Tool Call 已验证；原生 CI **107/107 通过** |
+| **macOS（Intel）** | x64 | Intel 原生 CI **107/107 通过**；另有 Rosetta 运行记录 |
+| **Windows x64**（目标 Windows 10/11） | x64 | Windows Server runner 实际运行：**104 通过、0 失败、3 项既有跳过**；Windows 10/11 DSH 桌面交互尚未完整验收 |
+| **Linux（glibc）** | x64 / arm64 | 两种架构的原生 Ubuntu CI 均 **107/107 通过** |
+| **Linux（musl）** | x64 / arm64 | 对应原生架构上的 Alpine 容器均 **107/107 通过** |
+| Windows on ARM 原生进程 | arm64 | **不支持**：上游无 ARM64 绑定；自检会报告 `platformSupport: unsupported` 并给出建议 |
+
+[本版本完整 CI 记录](https://github.com/kevinasworks/dsh-anydoc/actions/runs/42236379711)。所有环境均通过原生绑定核验及 DSH `0.2.0-rc.2`、`0.2.1-rc.5`、`0.2.2-rc.1` 包级兼容检查，覆盖真实文档转换、自检、进程隔离、超时与恢复。**CI 运行验证不替代完整 DSH 桌面界面验收**；Intel Mac 的 x64 Electron 宿主、Windows 10/11 的交互、文件占用和 SMB 场景仍需单独验证。
+
+从本地源码安装时，每台机器各自安装依赖，原生绑定不可跨平台共用：
 
 ```bash
-# 每台机器各自执行一次：原生绑定不跨平台共用
-cd <插件目录> && npm install --omit=dev
-node test/check-platforms.mjs   # 核验本机与 Windows 的预编译产物
+cd <插件目录>
+npm install --omit=dev
 ```
 
-Windows x64 已在 GitHub Windows runner 上运行完整测试：103 项通过、0 失败、3 项既有平台条件跳过；平台产物核验及 DSH `0.2.0-rc.2`、`0.2.1-rc.5`、`0.2.2-rc.1` 包级兼容检查均通过。此结果不替代 Windows 10/11 DSH 桌面端交互验收。[CI 记录](https://github.com/kevinasworks/dsh-anydoc/actions/runs/42230021943)。
+如需运行仓库内的验证脚本，先安装开发依赖：
+
+```bash
+npm ci
+node test/check-platforms.mjs   # 核验本机绑定、上游目标集与各平台产物
+```
+
+详见 [平台支持与验证边界](PLATFORM_SUPPORT.md)。
 
 ## 兼容性
 
@@ -233,7 +244,7 @@ node test/check-compat.mjs
 | [ARCHITECTURE.md](ARCHITECTURE.md) | 架构、模块边界、数据流、DSH 接口用法 |
 | [SOURCE_AUDIT.md](SOURCE_AUDIT.md) | 环境审计、AnyDoc 源码审计、能力分级 A/B/C/D |
 | [CONFIGURATION.md](CONFIGURATION.md) | 配置项、默认值、边界与权限 |
-| [PLATFORM_SUPPORT.md](PLATFORM_SUPPORT.md) | Windows / macOS 支持矩阵、验证证据、验收清单 |
+| [PLATFORM_SUPPORT.md](PLATFORM_SUPPORT.md) | macOS / Windows / Linux 支持矩阵、验证证据、验收清单 |
 | [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) | 第三方组件、版本、许可证与随附许可原文 |
 | [licenses/](licenses/) | 随分发的第三方许可证原文（AnyDoc，MIT） |
 | [PUBLISHING.md](PUBLISHING.md) | 发布范围、已执行检查、GitHub 元数据建议与发布结论 |
@@ -257,7 +268,7 @@ cd /path/to/dsh-anydoc
 npm test                    # 107 个自动化用例
 node test/bench.mjs         # 本机实测性能
 node test/check-updates.mjs   # 是否需要升级 / 重新适配
-node test/check-platforms.mjs # 本机与 Windows 的预编译产物是否就绪
+node test/check-platforms.mjs # 本机绑定、上游目标集与各平台产物是否就绪
 node test/check-compat.mjs  # 每条支持的 DSH 线是否仍然兼容
 ```
 

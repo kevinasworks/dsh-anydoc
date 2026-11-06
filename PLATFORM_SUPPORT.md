@@ -1,28 +1,29 @@
 # 平台支持
 
-> **2026-11-06 Windows CI 更新**：修复前的 8 项失败均已通过。Windows x64 在 GitHub runner 上为 **103 通过、0 失败、3 项既有平台条件跳过**；macOS arm64 为 **106/106 通过**。两端的平台产物检查及三条 DSH 版本线的包级兼容检查全部通过。下面关于 Windows“未运行”及 CI“休眠”的描述属于早期记录；Windows 10/11 桌面端交互、文件占用和 SMB 等场景仍需单独验收。[验证记录](https://github.com/kevinasworks/dsh-anydoc/actions/runs/42230021943)
+本文件记录 `v0.2.1` 当前的平台运行结果、安装方式与尚待验收的桌面场景。
 
-本文件说明 `dsh-anydoc` 在 Windows 与 macOS 上的支持范围、安装方式、已验证到什么程度，以及在 Windows 上做最终验收的清单。
+以 `v0.2.1` 提交 `73ddccd9236ad75176c61ec4880fd42eadf0a36f` 的 [完整 CI](https://github.com/kevinasworks/dsh-anydoc/actions/runs/42236379711) 为准：七种环境全部通过。Windows x64 为 **104 通过、0 失败、3 项既有平台条件跳过**；macOS arm64/x64、Linux x64/arm64 的 glibc 与 musl 环境均为 **107/107 通过**。所有环境的原生绑定检查及三条 DSH 版本线包级兼容检查均通过。
 
 ## 1. 支持矩阵
 
-**macOS（Apple 芯片）是唯一的主要平台**：作者自用、全部测试与真实 Tool Call 都在这里跑，任何改动都必须先保证它不回归；其余平台只做到“跟随上游产物”，不投入日常验证。
+macOS Apple 芯片是作者日常使用的平台；其他受支持目标也已纳入 CI。支持目标来自 `@firecrawl/anydoc@0.2.4` 的 7 个预编译包，以 `lib/platform.js` 的 `UPSTREAM_PREBUILT_TARGETS` 为准；上游没有产物的组合不支持。
 
-**支持范围严格等于上游 `@firecrawl/anydoc@0.2.4` 发布的 7 个预编译目标**（`darwin-arm64`、`darwin-x64`、`win32-x64-msvc`、`linux-x64-gnu`、`linux-arm64-gnu`、`linux-x64-musl`、`linux-arm64-musl`）。上游没有产物的一律不做——本插件不自建、不分发 AnyDoc 二进制。这个清单以 `lib/platform.js` 的 `UPSTREAM_PREBUILT_TARGETS` 为唯一事实来源，`node test/check-platforms.mjs` 会在上游增删目标时报警。
-
-| 平台 | 架构 | 状态 | 依据 |
+| 平台 | 架构 / libc | 当前验证状态 | 运行环境 |
 | --- | --- | --- | --- |
-| **macOS（Apple 芯片）** | `arm64` | **主要平台：完整支持，已实机运行，日常验证** | 本机 `darwin/arm64` 上 107 项测试全绿；真实 DSH Tool Call 通过；原生绑定为 Mach-O 64 **arm64**（7,007,312 字节） |
-| macOS（Rosetta / Intel） | `x64` | **x64 依赖链已实测（Rosetta），未在 Intel 实机验证** | 在 Apple 芯片上用 x64 Node v24.22.2 经 Rosetta 运行：装出 `anydoc.darwin-x64.node`（Mach-O **x86_64**），docx/xlsx 转换与自检均通过（见 4.1） |
-| **Windows 10 / 11** | `x64` | **代码与打包已就绪，未实机运行** | 上游发布 `anydoc.win32-x64-msvc.node`（PE **x64**，8,275,456 字节，已下载核验）；平台相关代码路径有 win32 规则单测 |
-| Windows on ARM | `arm64` | **不做（上游无产物）** | 上游 AnyDoc 只发布 `win32-x64-msvc`，没有 arm64 绑定。`anydoc_capabilities` 会直接报 `platformSupport: unsupported` 并给出替代方案；`NATIVE_UNAVAILABLE` 错误里也带同样提示（见 4.2） |
-| Linux | `x64` / `arm64` | **产物齐备并已核验，未在 Linux 实机运行** | 上游发布 `linux-{x64,arm64}-{gnu,musl}` 四个绑定；本机逐个下载核验为 **ELF**（x86_64 / arm64，8.1–8.2 MB 与 7.2 MB）；代码无平台特化路径（见 4.3） |
+| macOS Apple 芯片 | arm64 | 本地 DSH Tool Call 通过；CI 107/107 | `macos-15`，ARM64 Node.js 22 |
+| macOS Intel | x64 | 原生 CI 107/107；另有 Rosetta 记录 | `macos-15-intel`，x64 Node.js 22 |
+| Windows x64 | x64 | CI 104 通过、0 失败、3 跳过 | `windows-latest`，Windows Server x64，Node.js 22 |
+| Linux glibc | x64 | 原生 CI 107/107 | `ubuntu-24.04`，glibc 2.39，Node.js 22 |
+| Linux glibc | arm64 | 原生 CI 107/107 | `ubuntu-24.04-arm`，glibc 2.39，Node.js 22 |
+| Linux musl | x64 | 原生架构容器 107/107 | x64 runner 上的 `node:22-alpine` |
+| Linux musl | arm64 | 原生架构容器 107/107 | ARM64 runner 上的 `node:22-alpine` |
+| Windows ARM64 原生进程 | arm64 | 不支持，上游无绑定 | x64 DSH 模拟运行的替代路径未验证 |
 
-> “支持”指插件能在该平台加载并工作；“已验证”指真的在该平台跑过。两者在本文件中始终分开写。
+以上验证不依赖跨 CPU 模拟。Windows Server CI 不能直接证明 Windows 10/11 的全部桌面行为，Node.js 插件运行也不等同于 x64 Electron 宿主验收。Node.js 声明下限为 20；本次七平台 CI 使用 22，并未覆盖所有 Node.js 版本。
 
 ## 2. 安装（每个平台各自执行一次）
 
-插件通过 `link:` 安装，**原生绑定不会跨平台共用**：macOS 目录里只有 `anydoc-darwin-arm64`，Windows 需要它自己的 `.node`。因此在每台机器上：
+推荐按 [README](README.md#安装) 使用 GitHub 地址安装。以下为本地目录安装方式：**原生绑定不会跨平台共用**，每台机器应安装与当前 OS/CPU/libc 匹配的依赖：
 
 ```bash
 cd <插件目录>
@@ -73,20 +74,17 @@ anydoc_capabilities  →  {"selfTest": true}
 
 ## 4. 已验证到什么程度
 
-| 验证项 | 本机（macOS arm64） | 其他平台 |
+| 验证项 | macOS arm64 | 其他六种受支持环境 |
 | --- | --- | --- |
-| 自动化测试（107 项） | ✅ 实跑 107/107 | ❌ 未执行（Windows 上预期 104 通过 + 3 跳过；Linux 未跑） |
-| 真实 DSH Tool Call（转换/批量/自检） | ✅ 实跑 | ❌ 未执行 |
-| 原生绑定架构 | ✅ Mach-O arm64 | ✅ 已下载核验：darwin x86_64（Mach-O）、win32 x64（PE）、linux x64/arm64（ELF，glibc 与 musl 各一） |
-| `npm install --omit=dev` 选对平台包 | ✅ 实跑 | ✅ Windows 用 `--os=win32 --cpu=x64` 模拟；x64 用真实 x64 Node 实测（见 4.1） |
-| 平台路径规则单测 | ✅ posix + `path.win32` 双分支 | ✅ 同左 |
-| 进程隔离、超时杀进程 | ✅ 实跑 | ❌ 未执行 |
-| `npm test` 跨平台入口 | ✅ `node test/run-tests.mjs`（不依赖 shell 展开 glob） | 同一实现 |
-| 平台支持矩阵（`platformSupport`） | ✅ 单测覆盖 darwin/win32/linux/未知组合 | ✅ 同一实现 |
-| 长路径 / 文件占用 / 杀毒软件干扰 | 不适用 | ❌ 未执行 |
-| macOS x64 依赖链（Rosetta） | ✅ 实跑：x64 Node + `anydoc.darwin-x64.node`，docx/xlsx 转换与自检通过（见 4.1） | — |
+| 自动化测试 | 107/107 | Intel Mac 与四种 Linux 均 107/107；Windows 104 通过、3 项既有跳过 |
+| 真实文档转换、自检、批量、进程隔离及超时恢复 | 本地与 CI 通过 | CI 通过 |
+| 原生绑定加载与架构检查 | Mach-O arm64 | Mach-O x86_64、PE x64、四种 ELF 均通过 |
+| 平台支持矩阵 | 单测通过 | 单测通过 |
+| 三条 DSH 版本线包级兼容 | 通过 | 全部通过；使用真实 dsh-tools 包与替身 Cordis 上下文 |
+| 完整 DSH 桌面端 Tool Call | 本地已有记录 | 尚未验收；CI 不启动完整 DSH Desktop |
+| Windows 文件占用、深层路径实际读写、杀毒软件、SMB | 不适用 | 尚未完成桌面场景验收；路径规则单测已通过 |
 
-**没有** Windows 机器或 Windows CI 可用，所以 Windows 一侧完成的是：代码审计 + win32 规则单测 + 打包产物核验 + 安装选择验证。**不宣称 Windows 已实机运行。**
+Windows 的三项跳过是 POSIX 专属盘符拒绝测试及两个需要 Windows 符号链接权限的用例，没有新增跳过。CI 安装包含开发依赖；生产依赖单独安装、完整桌面宿主解析等场景应与包级验证分开看待。
 
 ### 4.1 macOS x64（Rosetta）实测记录
 
@@ -101,7 +99,7 @@ anydoc_capabilities  →  {"selfTest": true}
 | 真实转换（x64 进程内） | ✅ `docx-text.docx` → 1,295 字符；`zh-table.xlsx` → 410 字符 |
 | `anydoc_capabilities` 自检 | ✅ `platform darwin · arch x64 · node v24.22.2 · anydoc 0.2.4 · selfTest passed` |
 
-**边界**：Rosetta 转译 ≠ Intel 硬件。该测试证明了 `darwin-x64` 原生绑定与插件代码在 x64 进程中可用，但没有覆盖 Intel Mac 的 CPU/系统版本差异，也没有覆盖 **x64 Electron** 宿主（DSH 桌面端在 Intel Mac 上会以 x64 运行）。因此状态是“依赖链已实测、Intel 实机未验证”，不写成“已验证”。
+**当前状态**：上述 Rosetta 记录是补充证据。`v0.2.1` 已在 `macos-15-intel` 的 Intel x64 原生 runner 上完成 107/107 测试、绑定核验与三条 DSH 线包级检查。尚未验收的是完整 x64 Electron / DSH Desktop 宿主，不再把 Intel 平台运行列为未验证。
 
 ### 4.2 Windows on ARM：为什么是“不支持”，以及能怎么办
 
@@ -113,9 +111,9 @@ anydoc_capabilities  →  {"selfTest": true}
 - `anydoc_capabilities` 增加 `platformSupport` / `platformNote` 两个字段，未转换任何文档就能看出这个平台是否被上游支持。
 - 绑定加载失败的错误信息会附带同一段提示，不再是只报 “Cannot find native binding”。
 
-**能怎么办**：Windows 11 ARM 可以用 x64 模拟运行 x64 应用。装上 **x64 版 DSH Desktop** 后，宿主进程是 x64，npm 会安装 `anydoc-win32-x64-msvc`，整条链路可用（这是上游产物支持的路径）。这属于更换宿主架构，不是插件能自动完成的事；本机没有 Windows ARM 设备，**未实测**。
+**能怎么办**：Windows 11 ARM 可以用 x64 模拟运行 x64 应用。装上 **x64 版 DSH Desktop** 后，宿主进程是 x64，npm 会安装 `anydoc-win32-x64-msvc`，理论上可使用上游 x64 产物（该替代路径尚未运行验证）。这属于更换宿主架构，不是插件能自动完成的事；本机没有 Windows ARM 设备，**未实测**。
 
-### 4.3 Linux：产物齐备，未实机运行
+### 4.3 Linux：四种原生运行环境均已通过
 
 | 产物 | 架构 | 大小 | 结果 |
 | --- | --- | --- | --- |
@@ -126,16 +124,16 @@ anydoc_capabilities  →  {"selfTest": true}
 
 代码层面没有 Linux 特化路径：路径处理用 `node:path` 的 posix 分支，`child_process.fork`、`realpath`、`os.tmpdir()` 都是跨平台 API，`describeLongPathRisk` 只在 `win32` 生效。`npm install` 会按 libc（glibc / musl）自动选择 gnu 或 musl 包。
 
-**未验证**：没有 Linux 运行环境（本机无容器运行时、无 Linux VM），因此没有跑测试、没有真实转换。上面是产物与代码层面的核验，不是运行验证。
+**运行验证**：Linux x64/arm64 的 glibc 环境在原生 Ubuntu runner 上执行，musl 环境在对应原生架构的 Alpine 容器中执行；四种环境均完成 107/107 测试、真实转换、自检、worker 隔离与恢复，以及三条 DSH 版本线包级兼容检查。完整 Linux DSH Desktop 交互仍未验收。
 
 
 ## 5. Windows 最终验收清单
 
-在 Windows 机器上依次执行，任一失败请把输出贴回来：
+第 2–4 项已在 Windows Server CI 中通过；第 1 项为生产依赖独立安装的本地检查。Windows 10/11 桌面环境仍可按此清单验收。运行仓库测试需先执行 `npm ci` 安装开发依赖；仅使用插件可执行 `npm install --omit=dev`。
 
 1. `npm install --omit=dev` → 应出现 `@firecrawl/anydoc-win32-x64-msvc`
 2. `node test/check-platforms.mjs` → 本地二进制检查应为 `PE x64`
-3. `npm test` → 期望 **103 通过 + 3 跳过**。跳过的是 3 个需要创建符号链接/改权限的用例：Windows 上创建符号链接需要开发者模式或管理员权限，而 chmod 不是 Windows 的权限模型；测试里已按平台显式 `skip` 并写明原因。其余用例用 `os.tmpdir()` 与平台 `path` 推导期望值，不写死 POSIX 路径。
+3. `npm test` → 预期 **104 通过 + 3 跳过**。跳过项为 POSIX 专属盘符拒绝测试，以及两个需要 Windows 符号链接权限的用例；其余断言保持启用。
 4. `node test/check-compat.mjs` → 三条 DSH 线 PASS
 5. 在 DSH 中：`anydoc_capabilities {selfTest:true}` → `native binding: ok · self test: passed`
 6. 真实转换一个 `.docx` 与一个 `.xlsx`，检查输出路径与内容
@@ -144,11 +142,15 @@ anydoc_capabilities  →  {"selfTest": true}
 9. 转换到深层目录（路径 > 240 字符）→ 应出现 MAX_PATH 警告
 10. 关闭/启用插件（`plugin_manager set_bundle`）→ 工具随之消失/恢复
 
-## 6. 自动化验收（可选）
+## 6. 自动化验收
 
-目录里带了一份 `.github/workflows/platform-ci.yml`：把整个目录推到 GitHub 后，它会在 `macos-14`（Apple silicon）与 `windows-latest`（x64）上各跑一遍 `npm install` → `npm test` → `node test/check-platforms.mjs` → `node test/check-compat.mjs`。这是补上“Windows 实机验证”最省事的方式——不需要你手上有 Windows 机器。
+`.github/workflows/platform-ci.yml` 已启用，`main`/`master` 推送、PR 与手动触发均可运行：
 
-目前该文件处于休眠状态：本目录尚未关联任何 Git 远端。
+- 原生 runner：`macos-15`、`macos-15-intel`、`windows-latest`、`ubuntu-24.04`、`ubuntu-24.04-arm`。
+- musl：在对应 x64/ARM64 runner 上运行 `node:22-alpine` 容器。
+- 每种环境执行依赖安装、完整测试、平台产物核验及三条 DSH 线包级兼容检查。
+
+`v0.2.1` 的七种环境均已通过：[CI 记录](https://github.com/kevinasworks/dsh-anydoc/actions/runs/42236379711)。
 
 ## 7. 故障排查
 
@@ -164,7 +166,7 @@ anydoc_capabilities  →  {"selfTest": true}
 
 平台支持与 DSH 版本支持是两件事：
 
-- 平台：看本文档（Windows 10+ x64 / Apple silicon macOS）
+- 平台：看本文档的七种受支持目标及桌面验收边界
 - DSH 版本：见 [README 的兼容性一节](README.md#兼容性)，支持 `0.2.0-rc.2`、`0.2.1-rc.2~rc.5`、`0.2.2-rc.1~0.2.2`
 
 两者需要同时满足。

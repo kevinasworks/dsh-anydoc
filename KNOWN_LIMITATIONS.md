@@ -1,6 +1,6 @@
 # 已知限制
 
-> **2026-11-06 Windows CI 更新**：修复前的 8 项失败均已通过。Windows x64 在 GitHub runner 上为 **103 通过、0 失败、3 项既有平台条件跳过**；macOS arm64 为 **106/106 通过**。两端的平台产物检查及三条 DSH 版本线的包级兼容检查全部通过。下面关于 Windows“未运行”及 CI“休眠”的描述属于早期记录；Windows 10/11 桌面端交互、文件占用和 SMB 等场景仍需单独验收。[验证记录](https://github.com/kevinasworks/dsh-anydoc/actions/runs/42230021943)
+以 `v0.2.1` 提交 `73ddccd9236ad75176c61ec4880fd42eadf0a36f` 的 [完整 CI](https://github.com/kevinasworks/dsh-anydoc/actions/runs/42236379711) 为准：七种环境全部通过。Windows x64 为 **104 通过、0 失败、3 项既有平台条件跳过**；macOS arm64/x64、Linux x64/arm64 的 glibc 与 musl 环境均为 **107/107 通过**。所有环境的原生绑定检查及三条 DSH 版本线包级兼容检查均通过。
 
 本文件记录**实际观察到**的限制，分三类：上游能力、本插件设计取舍、尚未验证。不把未验证项写成“支持”。
 
@@ -63,20 +63,20 @@ conversion local, so no remote OCR is attempted. …
 
 ---
 
-## 四、尚未验证
+## 四、验证边界与尚未完成的场景
 
 | 项 | 状态 | 原因 |
 | --- | --- | --- |
 | ~~真实进程重启后的持久化~~ | **PASS** | 已于 DSH 重启后实测：工具仍可用、自检通过、加载的是最新代码（见 TEST_REPORT 第八节） |
-| **Windows 实机运行** | NOT_TESTED | 本机为 macOS arm64。Windows 一侧完成：平台代码审计与加固、win32 规则单测（`path.win32`）、`win32-x64-msvc` 产物核验（PE x64）、`npm install --os=win32 --cpu=x64` 安装选择验证。未在 Windows 上执行测试与 Tool Call，详见 [PLATFORM_SUPPORT.md](PLATFORM_SUPPORT.md) 的验收清单 |
+| Windows 10/11 DSH 桌面交互 | NOT_TESTED（CI 已通过） | Windows Server x64 CI 已完成 104 通过、3 跳过，真实转换、worker 超时恢复及三条 DSH 线包级检查均通过；尚未完整验收 Windows 10/11 的 DSH Desktop 界面、Word/Excel 文件占用与杀毒软件干扰 |
 | 上游未发布的目标（Windows ARM、Windows ia32、Linux riscv64 等） | LIMITATION（按上游范围不做） | 支持范围以 `lib/platform.js` 的 `UPSTREAM_PREBUILT_TARGETS` 为准，超出即 `unsupported`。|
 | Windows on ARM（arm64） | LIMITATION | 上游 AnyDoc 只发布 `win32-x64-msvc`，没有 arm64 绑定，属于上游能力边界。插件会报 `platformSupport: unsupported` 与 `NATIVE_UNAVAILABLE`，并提示改用 x64 版 DSH（由 Windows x64 模拟运行）或 x64 机器；**未在 Windows ARM 实机验证** |
-| Linux（x64 / arm64，glibc 与 musl） | NOT_TESTED | 上游四个 Linux 绑定均已下载核验为 ELF（架构正确），代码无 Linux 特化路径；但本机无容器运行时或 Linux VM，**未在 Linux 上跑测试或真实转换** |
-| macOS Intel（x64） | NOT_TESTED（依赖链已测） | 已在 Apple 芯片上用 Rosetta 跑通 x64 链路：x64 Node v24.22.2 + `anydoc.darwin-x64.node`，docx/xlsx 转换与自检通过。未在 Intel 硬件与 x64 Electron 宿主上验证 |
+| Linux 完整 DSH 桌面交互 | NOT_TESTED（插件运行已验证） | x64/arm64 的 glibc 与 musl 四种环境均已执行 107/107 测试和三条 DSH 线包级兼容检查；完整 DSH Desktop 界面未验收 |
+| macOS Intel 的 x64 Electron / DSH Desktop 宿主 | NOT_TESTED（Intel 原生插件运行已验证） | `macos-15-intel` 原生 CI 107/107、绑定检查与三条 DSH 线包级检查均通过；Rosetta 也有转换记录，但未在完整 x64 Electron 宿主验收 |
 | Junction / 网络共享路径逃逸（Windows） | NOT_TESTED | 判定走 `realpath` 后比对 `allowedRoots`，目录递归用 realpath 集合防环；macOS 符号链接已实测，Windows Junction 与 SMB 路径未实机执行 |
 | 中文文本型 PDF | NOT_TESTED | 未生成中文 PDF 样本；PDF 只用英文样本验证 |
 | `MISSING_PART` 错误码 | NOT_TESTED | 未构造出稳定触发样本（映射已实现） |
-| Native Binding 加载失败的真实场景 | NOT_TESTED | 未破坏安装去制造故障；`probe()` 的降级路径已实现 |
+| 原生二进制损坏或系统 ABI 不兼容 | NOT_TESTED | CI 已用缺失 AnyDoc 包验证 NATIVE_UNAVAILABLE、平台提示与回退路径；未逐项构造损坏 `.node` 或系统 ABI 不兼容场景 |
 | 数据库/大型表格的极端规模 | NOT_TESTED | 只测到 `zh-heavy.docx`（294,801 字符输出） |
 | 多个大文件同时转换的内存峰值 | NOT_TESTED | 未做 RSS 级测量：进程隔离提供了上限保护，但没有量化数据 |
 | **旧版 DSH 桌面端整体启动** | NOT_TESTED | 向下兼容采用的是**包级验证**：在每条线真实发布的 `@deepseek-ai/dsh-tools`（连带 schemastery / cordis）上执行插件的 `lib/` 与 `index.js`，并用替身上下文调用 `apply()`。没有把 0.2.0-rc.2 / 0.2.1 的桌面端真的启动一遍——本机只装了 0.2.2-rc.1 的 Desktop |

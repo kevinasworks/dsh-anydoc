@@ -1,7 +1,24 @@
 # 测试报告
 
-测试日期：2026-11-04
-结论：**107 个自动化用例全部通过**；并在**运行中的 DSH（0.2.2-rc.1）内完成真实 Tool Call**。未验证项单列在 [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md)。
+## 当前版本验证（v0.2.1，2026-11-06）
+
+以 `v0.2.1` 提交 `73ddccd9236ad75176c61ec4880fd42eadf0a36f` 的 [完整 CI](https://github.com/kevinasworks/dsh-anydoc/actions/runs/42236379711) 为准：七种环境全部通过。Windows x64 为 **104 通过、0 失败、3 项既有平台条件跳过**；macOS arm64/x64、Linux x64/arm64 的 glibc 与 musl 环境均为 **107/107 通过**。所有环境的原生绑定检查及三条 DSH 版本线包级兼容检查均通过。
+
+| 运行环境 | 通过 | 失败 | 跳过 |
+| --- | --- | --- | --- |
+| macOS ARM64 | 107 | 0 | 0 |
+| macOS Intel x64 | 107 | 0 | 0 |
+| Windows Server x64 | 104 | 0 | 3 |
+| Linux glibc x64 / ARM64 | 各 107 | 0 | 0 |
+| Linux musl x64 / ARM64 | 各 107 | 0 | 0 |
+
+七种环境均在 Node.js 22 下执行真实文档转换、自检、worker 隔离及超时恢复，三条 DSH 线为 `0.2.0-rc.2`、`0.2.1-rc.5`、`0.2.2-rc.1`。macOS Apple 芯片另有本地真实 DSH Tool Call 记录；其他平台完整桌面交互尚未验收。
+
+## 历史测试记录
+
+以下保留开发阶段及早期提交的测试环境、数量和状态，用于追溯；各节“未执行”等状态描述对应当时环境，当前平台结论以本页顶部及 [PLATFORM_SUPPORT.md](PLATFORM_SUPPORT.md) 为准。
+
+原始测试日期：2026-11-04（后续阶段记录见各节）。
 
 标记说明：
 
@@ -115,7 +132,7 @@
 
 ## 五、Windows 兼容性
 
-当前环境是 **macOS arm64**，无法执行 Windows 实机测试。如实记录：
+本节为早期 macOS arm64 开发阶段的历史检查；`v0.2.1` 的 Windows Server CI 已通过，Windows 10/11 桌面场景仍需验收。以下保留原始检查范围：
 
 | 项 | 结果 | 说明 |
 | --- | --- | --- |
@@ -133,7 +150,7 @@
 | Junction / 符号链接绕过 | PASS（macOS 符号链接） | realpath 后判定，逃逸被拒；**Windows Junction 未实测** |
 | 网络共享路径 | NOT_TESTED | 未构造 SMB 路径 |
 
-Windows 上有官方预编译产物 `@firecrawl/anydoc-win32-x64-msvc`，但**本插件尚未在 Windows 实机验证**，不宣称支持。
+该阶段仅核验 Windows 产物；此后 `v0.2.1` 已完成 Windows Server x64 原生运行验证，详见本页顶部。
 
 ---
 
@@ -404,7 +421,7 @@ DSH         dsh-tools     schemastery  cordis   result
 | 平台支持矩阵（`platformSupport`） | PASS — 单测覆盖 darwin/win32/linux 与未知组合；win32/arm64 返回 `unsupported` 并带替代方案提示 |
 | macOS x64 依赖链（Apple 芯片 + Rosetta，2026-11-06） | PASS — x64 Node v24.22.2 + `anydoc.darwin-x64.node`：插件注册 3 个工具，docx 1,295 字符、xlsx 410 字符转换成功，`anydoc_capabilities` 报 `arch x64`、`selfTest passed` |
 
-### 12.4 未执行
+### 12.4 当时尚未执行的项目（历史状态）
 
 - macOS Intel 实机与 x64 Electron 宿主：Rosetta 测试只覆盖 x64 进程内的插件与原生绑定，不代表 Intel 硬件已验证。
 - Linux 运行验证：本机无容器运行时与 Linux VM，只核验了四个 ELF 产物与代码的平台无关性，未跑测试或真实转换。
@@ -445,7 +462,7 @@ anydoc_batch_convert {"directory": "<含文档的目录>"}
 
 结论见 `PUBLISHING.md`：版权署名已确认为 **Kevin Zheng** 后，源码公开与安装包分发均为 **READY**；GitHub 直接安装为 **NOT_TESTED**（无远程仓库）。
 
-## Windows CI 故障修复验收（2026-11-06）
+## Windows CI 故障修复验收（2026-11-06，v0.2.1 之前的提交）
 
 验证提交：`f0430ff5b0acc329bc29ca0f7f6d7103715368e4`。[完整 CI](https://github.com/kevinasworks/dsh-anydoc/actions/runs/42230021943)。
 

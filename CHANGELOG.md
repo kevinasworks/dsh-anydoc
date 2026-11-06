@@ -22,12 +22,19 @@
 - 平台产物检查按实际运行平台核验绑定，不再写死 macOS。
 - 同步锁文件中的项目版本号及宿主兼容声明；保留 `private: true`，不发布 npm。
 
+### 验证
+
+- 七种 CI 环境全部通过：Windows x64 为 104 通过、0 失败、3 跳过；macOS arm64/x64 与 Linux x64/arm64 的 glibc/musl 环境均为 107/107。
+- 全部环境的原生绑定检查及三条 DSH 线包级兼容检查均通过。[验证记录](https://github.com/kevinasworks/dsh-anydoc/actions/runs/42236379711)。
+
 ### 说明
 
 - 解析引擎继续固定为 AnyDoc 0.2.4；文档转换仍为本地离线，不启用 OCR。
 - 平台 CI 与 DSH 包级验证不等于各平台桌面界面的完整交互验收。
 
 ## [0.2.0] — 2026-11-05
+
+以下是该版本准备时的历史状态，当前验证范围见 0.2.1。
 
 平台兼容：在 Apple 芯片 macOS 上实机验证，并把 Windows 10+ x64 的代码、打包与安装路径全部落实。
 
@@ -37,7 +44,7 @@
 - `test/platform.test.mjs`（7 项）：UNC 与扩展长度前缀、大小写不敏感/跨盘包含判定、保留设备名、NTFS 冒号、长路径告警、读写错误映射。
 - `test/check-platforms.mjs`：核验两个平台的预编译产物——本机 Mach-O arm64、下载 npm 上的 Windows PE x64。
 - `PLATFORM_SUPPORT.md`：支持矩阵、验证证据、Windows 验收清单与故障排查。
-- `.github/workflows/platform-ci.yml`：macOS 14（Apple silicon）+ windows-latest 的双平台 CI，推送到 GitHub 后即可自动补齐 Windows 实机验证（当前目录未关联远端，处于休眠状态）。
+- `.github/workflows/platform-ci.yml`：macOS 14（Apple silicon）+ windows-latest 的双平台 CI，推送到 GitHub 后即可自动补齐 Windows 实机验证（当时尚未关联远端，后续已启用并扩展）。
 - `test/run-tests.mjs`：跨平台测试入口，自己展开文件列表，不依赖 shell 的 glob 展开（cmd.exe 不展开 `test/*.test.mjs`），`npm test` 在 Windows 上同样可用。
 - `npm run check:platforms` 脚本。
 
