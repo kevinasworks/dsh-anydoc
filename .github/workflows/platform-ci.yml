@@ -69,8 +69,8 @@ jobs:
         env:
           EXPECTED_ARCH: ${{ matrix.arch }}
         run: |
-          docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -e EXPECTED_ARCH -v "$PWD:/work" -w /work node:22-alpine sh -ec '
-            node -e "const assert=require("node:assert/strict"); assert.equal(process.arch,process.env.EXPECTED_ARCH); assert.equal(process.platform,"linux"); assert.equal(process.report.getReport().header.glibcVersionRuntime,undefined); console.log(process.version,process.platform,process.arch,"musl")"
+          docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -e EXPECTED_ARCH -e EXPECTED_PLATFORM=linux -v "$PWD:/work" -w /work node:22-alpine sh -ec '
+            node -e "if(process.arch!==process.env.EXPECTED_ARCH||process.platform!==process.env.EXPECTED_PLATFORM||process.report.getReport().header.glibcVersionRuntime)throw Error();console.log(process.version,process.platform,process.arch)"
             npm ci --no-audit --no-fund
             npm test
             node test/check-platforms.mjs
