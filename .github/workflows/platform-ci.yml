@@ -25,13 +25,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15, windows-latest]
+        os: [macos-15-intel, windows-latest, ubuntu-24.04, ubuntu-24.04-arm]
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: Record actual runtime
+        run: node -p "JSON.stringify({platform:process.platform,arch:process.arch,node:process.version,glibc:process.report.getReport().header.glibcVersionRuntime})"
 
       - name: Install production and development dependencies
         run: npm install --no-audit --no-fund
@@ -47,3 +50,29 @@ jobs:
       - name: DSH generation compatibility
         run: node test/check-compat.mjs
         timeout-minutes: 15
+
+  musl:
+    name: Alpine musl / ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch: x64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    steps:
+      - uses: actions/checkout@v4
+      - name: Native Alpine runtime, full tests and DSH compatibility
+        env:
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        run: |
+          docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -e EXPECTED_ARCH -v "$PWD:/work" -w /work node:22-alpine sh -ec '
+            node -e "const assert=require("node:assert/strict"); assert.equal(process.arch,process.env.EXPECTED_ARCH); assert.equal(process.platform,"linux"); assert.equal(process.report.getReport().header.glibcVersionRuntime,undefined); console.log(process.version,process.platform,process.arch,"musl")"
+            npm ci --no-audit --no-fund
+            npm test
+            node test/check-platforms.mjs
+            node test/check-compat.mjs
+          '

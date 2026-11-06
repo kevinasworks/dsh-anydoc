@@ -49,6 +49,10 @@ function describeBinary(buffer) {
     const arch = cpuType === 0x0100000c ? 'arm64' : cpuType === 0x01000007 ? 'x86_64' : `cputype:0x${cpuType.toString(16)}`
     return { format: 'Mach-O 64', arch }
   }
+  if (buffer.length >= 20 && buffer[0] === 0x7f && buffer.toString('ascii', 1, 4) === 'ELF') {
+    const machine = buffer.readUInt16LE(18)
+    return { format: 'ELF', arch: machine === 62 ? 'x86_64' : machine === 183 ? 'arm64' : `machine:${machine}` }
+  }
   if (buffer.length >= 0x40 && buffer[0] === 0x4d && buffer[1] === 0x5a) {
     const peOffset = buffer.readUInt32LE(0x3c)
     if (peOffset + 6 <= buffer.length && buffer.toString('latin1', peOffset, peOffset + 4) === 'PE\0\0') {
@@ -97,7 +101,9 @@ const localTarget = process.platform === 'darwin'
   ? { pkg: `darwin-${process.arch}`, format: 'Mach-O 64', arch: process.arch === 'x64' ? 'x86_64' : process.arch }
   : process.platform === 'win32'
     ? { pkg: `win32-${process.arch}-msvc`, format: 'PE', arch: process.arch }
-    : null
+    : process.platform === 'linux'
+      ? { pkg: `linux-${process.arch}-${process.report.getReport().header.glibcVersionRuntime ? 'gnu' : 'musl'}`, format: 'ELF', arch: process.arch === 'x64' ? 'x86_64' : process.arch }
+      : null
 if (localTarget === null) {
   record('installed binary', `${process.platform}/${process.arch}`, 'FAIL', 'local binary verification is not implemented for this platform')
 } else {
@@ -163,4 +169,4 @@ if (skipped.length > 0) {
   console.log(`部分检查跳过（离线或注册表不可达）：${skipped.map((row) => row.target).join(', ')}`)
   process.exit(2)
 }
-console.log('PASS: macOS arm64 与 Windows x64 的预编译产物均已就绪')
+console.log('PASS: 当前平台绑定与检查的上游产物均已就绪')

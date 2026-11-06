@@ -135,8 +135,8 @@ if (failed.length > 0) {
   console.log(`FAILED: ${failed.map((row) => row.dsh).join(', ')}`)
   process.exit(1)
 }
-if (skipped.length === rows.length) {
-  console.log('所有目标线都无法安装（离线？），未能验证。')
+if (skipped.length > 0) {
+  console.log('存在未完成的目标线，兼容验证不完整。')
   process.exit(2)
 }
 console.log(`PASS: ${rows.filter((row) => row.result === 'PASS').map((row) => row.dsh).join(', ')}${skipped.length > 0 ? ` | SKIP: ${skipped.map((row) => row.dsh).join(', ')}` : ''}`)
