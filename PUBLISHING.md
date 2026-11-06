@@ -6,7 +6,7 @@
 
 `dsh-anydoc@0.2.1` 已于 2026-11-06 发布至 npm 官方注册表，`latest` 为 `0.2.1`。包页面：https://www.npmjs.com/package/dsh-anydoc 。
 
-后续自动发布的 GitHub 工作流已就绪，但 npm 端的 Trusted Publisher 授权尚未配置；在授权完成前不要把工作流视为已启用的自动发布。
+GitHub 工作流与 npm 端 Trusted Publisher 授权已于 2026-11-06 配置。按所有者要求，本次不发布新版本，因此尚未完成首次 OIDC 自动发布的端到端验证。新授权有两天的首次发布验证窗口，详见下节。
 
 - 包名：`dsh-anydoc`；当前版本：`0.2.1`。
 - `package.json` 已移除阻止发布的 `private: true`，`publishConfig` 固定为 npm 官方源与公开访问。
@@ -26,7 +26,7 @@ npm publish --access public
 
 ## 后续自动发布：Trusted Publishing
 
-工作流文件为 `.github/workflows/npm-publish.yml`。在首次发布后，所有者需要在 npm 的包设置中添加 GitHub Actions Trusted Publisher：
+工作流文件为 `.github/workflows/npm-publish.yml`，npm 已确认创建以下 GitHub Actions Trusted Publisher：
 
 | 设置 | 值 |
 | --- | --- |
@@ -35,7 +35,9 @@ npm publish --access public
 | Workflow filename | `npm-publish.yml` |
 | Environment | 留空（工作流未指定 environment） |
 
-这一步不能由 GitHub 仓库中的 YAML 单独替代。配置完成后不需要向 GitHub 保存长期 npm 发布 Token。
+授权仅绑定上表仓库与工作流，不需要向 GitHub 保存长期 npm 发布 Token。该授权允许工作流发布此包；没有对其他仓库或包授予权限。
+
+**首次验证仍待完成**：npm 要求新授权在创建后两天内完成第一次成功发布，成功后绑定仓库的不可变身份。如果两天内未验证，授权会过期，之后需要删除过期连接并重新创建。此次按所有者选择不发布新版本，因此不把“配置已创建”写成“自动发布已实测通过”。[npm 官方到期规则](https://docs.npmjs.com/trusted-publishers/#trusted-publisher-configuration-expiry)。
 
 以后更新步骤：
 
