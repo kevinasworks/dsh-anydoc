@@ -1,5 +1,7 @@
 # 平台支持
 
+> **2026-11-06 Windows CI 更新**：修复前的 8 项失败均已通过。Windows x64 在 GitHub runner 上为 **103 通过、0 失败、3 项既有平台条件跳过**；macOS arm64 为 **106/106 通过**。两端的平台产物检查及三条 DSH 版本线的包级兼容检查全部通过。下面关于 Windows“未运行”及 CI“休眠”的描述属于早期记录；Windows 10/11 桌面端交互、文件占用和 SMB 等场景仍需单独验收。[验证记录](https://github.com/kevinasworks/dsh-anydoc/actions/runs/42230021943)
+
 本文件说明 `dsh-anydoc` 在 Windows 与 macOS 上的支持范围、安装方式、已验证到什么程度，以及在 Windows 上做最终验收的清单。
 
 ## 1. 支持矩阵

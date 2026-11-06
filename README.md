@@ -145,7 +145,7 @@ cd <插件目录> && npm install --omit=dev
 node test/check-platforms.mjs   # 核验本机与 Windows 的预编译产物
 ```
 
-Windows 一侧完成的是**代码审计 + win32 规则单测 + 产物核验 + 安装选择验证**，没有 Windows 机器可实跑，因此不宣称已实机运行。逐项证据与验收清单见 [PLATFORM_SUPPORT.md](PLATFORM_SUPPORT.md)。
+Windows x64 已在 GitHub Windows runner 上运行完整测试：103 项通过、0 失败、3 项既有平台条件跳过；平台产物核验及 DSH `0.2.0-rc.2`、`0.2.1-rc.5`、`0.2.2-rc.1` 包级兼容检查均通过。此结果不替代 Windows 10/11 DSH 桌面端交互验收。[CI 记录](https://github.com/kevinasworks/dsh-anydoc/actions/runs/42230021943)。
 
 ## 兼容性
 

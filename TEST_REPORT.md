@@ -436,3 +436,19 @@ anydoc_batch_convert {"directory": "<含文档的目录>"}
 | 回归 | `npm test` / `check:compat` / `check:platforms` | 106/106 通过；三条 DSH 线 PASS；平台产物 PASS |
 
 结论见 `PUBLISHING.md`：版权署名已确认为 **Kevin Zheng** 后，源码公开与安装包分发均为 **READY**；GitHub 直接安装为 **NOT_TESTED**（无远程仓库）。
+
+## Windows CI 故障修复验收（2026-11-06）
+
+验证提交：`f0430ff5b0acc329bc29ca0f7f6d7103715368e4`。[完整 CI](https://github.com/kevinasworks/dsh-anydoc/actions/runs/42230021943)。
+
+| 原失败项 | 根因与修复 | Windows 结果 |
+| --- | --- | --- |
+| 扫描 PDF、错误映射、OCR 隐私断言（3 项） | Git 换行转换破坏 PDF 字节偏移；新增 `.gitattributes`，所有文档样本禁止文本转换。原文件返回 `needsOcr`，CRLF 副本可复现 `invalid file trailer`。 | 全部通过 |
+| worker 回退、缺少原生绑定（2 项） | 测试把盘符路径直接传给动态 import；改用 `pathToFileURL`。 | 全部通过 |
+| POSIX 大小写语义（1 项） | 测试依赖宿主默认 path 实现；显式注入 `path.posix`。 | 通过 |
+| 无效白名单配置（1 项） | 写死 POSIX `/tmp`；改用独立临时目录，核对实际规范路径。 | 通过 |
+| 白名单内转换（1 项） | 同步与异步 realpath 对 DOS 8.3 名称解析不一致；配置改用 native realpath 并去掉扩展前缀，与输入/输出规范化一致。增加规范路径一致性断言，继续验证内外输入/输出边界。 | 通过 |
+
+同时修正后续 CI 问题：平台核验按当前 runner 检查绑定、不再写死 macOS；Windows 兼容沙箱使用 junction；macOS runner 从已退役的 14 改为 15。超时测试改为确定性抑制 worker 回复，验证 TIMEOUT、真实子进程 kill、移出池及后续转换恢复，避免依赖真实文档耗时恰好超过 1 ms。
+
+最终结果：macOS arm64 106/106；Windows x64 103 通过、0 失败、3 跳过。三项跳过保持原有条件：POSIX 专属盘符拒绝测试、两个需要 Windows 符号链接权限的测试。没有新增跳过，也没有放宽错误码或白名单断言。两端的安装、产物核验及三条 DSH 线包级检查均通过，warnings=0。未修改上游 AnyDoc，不代表已验收所有 Windows 桌面交互场景。
