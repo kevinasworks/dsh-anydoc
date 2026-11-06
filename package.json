@@ -1,7 +1,6 @@
 {
   "name": "dsh-anydoc",
   "version": "0.2.1",
-  "private": true,
   "description": "Local, offline document-to-Markdown parsing as native DeepSeek Harness tools for Windows 10+ x64 and Apple-silicon macOS, powered by Firecrawl AnyDoc.",
   "author": "Kevin Zheng",
   "license": "MIT",
@@ -80,5 +79,19 @@
   "homepage": "https://github.com/kevinasworks/dsh-anydoc#readme",
   "bugs": {
     "url": "https://github.com/kevinasworks/dsh-anydoc/issues"
-  }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "anydoc",
+    "firecrawl",
+    "document-parser",
+    "document-conversion",
+    "markdown",
+    "nodejs"
+  ]
 }

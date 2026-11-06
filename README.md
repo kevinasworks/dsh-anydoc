@@ -55,20 +55,33 @@ DSH 的模型可以直接读文本文件，但 `.docx` / `.xlsx` / `.pptx` / `.p
 
 插件以 DSH 官方 Bundle 方式安装，不修改 DSH 核心源码，也不手改 profile 文件。
 
-### 通过 GitHub 安装（推荐）
+### 通过 npm 包名安装（推荐）
 
-1. 打开 DSH 的「插件」页面，点击「添加插件」。
-2. 在输入框中粘贴完整的 GitHub 仓库地址：
+在 DSH 的「插件」→「添加插件」中输入：
 
-   ```text
-   https://github.com/kevinasworks/dsh-anydoc
-   ```
+```text
+dsh-anydoc
+```
 
-3. 点击「安装」，等待依赖下载完成，再启用插件。
+如需固定版本，输入 `dsh-anydoc@0.2.1`。npm 包地址：[dsh-anydoc](https://www.npmjs.com/package/dsh-anydoc)。首次发布后，中国大陆镜像可能尚未同步，可先选择 npm 官方源。
 
-**请勿只输入 `dsh-anydoc`**：本项目尚未发布到 npm，按 npm 包名查找会提示「未找到相关插件」。GitHub Release 不等于 npm 发布，应使用上面的仓库地址。
+从 npm 安装后，DSH 支持在插件详情的「版本」区块检查新版，也可刷新插件列表，发现兼容版本后点击「更新」。这是 DSH 的版本检查功能，不是插件向用户主动推送通知；是否需要重启由宿主提示。
 
-安装时需要能够访问 GitHub 和所选 npm 源，以获取插件源码、AnyDoc 依赖及对应平台的原生二进制；文档转换本身在本地离线执行。仓库不包含 `node_modules/`。若安装失败，请保留完整错误信息以便排查。
+### 现有 GitHub 安装用户迁移
+
+GitHub、压缩包或本地目录安装不属于 DSH 的 npm 版本更新范围。迁移前记录插件配置，卸载旧安装，再用上面的 npm 包名安装一次并核对配置；以后使用 DSH 的更新按钮，无需每次手动卸载重装。
+
+### 通过 GitHub 安装
+
+在「添加插件」中也可以输入完整地址：
+
+```text
+https://github.com/kevinasworks/dsh-anydoc
+```
+
+此方式获取 GitHub 源码，但不会显示 npm 安装所具有的版本更新区块。推荐希望跟随正式版本的用户选择 npm 包名安装。
+
+安装时需要能够访问所选源以获取插件、AnyDoc 依赖及当前平台的原生绑定。仓库与 npm 包均不包含 `node_modules/`；文档转换本身仍为本地离线执行。
 
 ### 从本地目录安装
 

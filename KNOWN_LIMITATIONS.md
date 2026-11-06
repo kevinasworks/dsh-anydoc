@@ -91,4 +91,4 @@ conversion local, so no remote OCR is attempted. …
 
 - **`link:` 安装与磁盘可用性**：插件通过 `link:` 指向本地目录安装。若该目录所在磁盘不可用（例如外接卷未挂载），DSH 启动时会跳过该 bundle 并报告，不影响其他插件；恢复后可用。
 - **输出目录**：默认 `$DSH_HOME/anydoc-output`，插件不会自动清理。
-- **`private: true`**：本包是个人自用插件，未发布到 npm；`link:` 安装不需要发布。
+- **更新发现**：DSH 的 npm 版本检查仅适用于从注册表安装的插件。GitHub、压缩包与 `link:` 安装需先迁移到 npm 安装；镜像同步延迟可能影响新版可见时间。
