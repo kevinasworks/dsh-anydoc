@@ -6,6 +6,9 @@
 
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { mkdtempSync, realpathSync, rmSync } from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { Config, defaultOutputRoot, resolveConfig } from '../lib/config.js'
 import { SUPPORTED_EXTENSIONS, extensionOf, hasSupportedExtension } from '../lib/formats.js'
 import { apply, inject, name } from '../index.js'
@@ -122,11 +125,13 @@ test('resolveConfig clamps unsafe values', () => {
   assert.equal(config.maxAssetBytes, 512 * 1024 * 1024)
 })
 
-test('resolveConfig ignores unusable allow-list entries', () => {
+test('resolveConfig ignores unusable allow-list entries', (t) => {
+  const directory = mkdtempSync(path.join(os.tmpdir(), 'anydoc-config-'))
+  t.after(() => rmSync(directory, { recursive: true, force: true }))
   const warnings = []
-  const config = resolveConfig({ allowedRoots: ['relative/path', '/definitely/not/here', '/tmp'] }, { warn: message => warnings.push(message) })
+  const config = resolveConfig({ allowedRoots: ['relative/path', path.join(directory, 'missing'), directory] }, { warn: message => warnings.push(message) })
   assert.equal(config.allowedRoots.length, 1, String(config.allowedRoots))
-  assert.ok(config.allowedRoots[0].endsWith('/tmp'), String(config.allowedRoots))
+  assert.equal(config.allowedRoots[0], realpathSync(directory))
   assert.equal(warnings.length, 2)
 })
 

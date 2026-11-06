@@ -1,0 +1,3 @@
+# Source text uses LF; document fixtures must retain exact byte offsets.
+* text=auto eol=lf
+test/fixtures/** -text

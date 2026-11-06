@@ -12,6 +12,7 @@ import { cp, mkdir, mkdtemp, readdir, rm, symlink, rename } from 'node:fs/promis
 import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
+import { pathToFileURL } from 'node:url'
 import { PLUGIN_ROOT, UPSTREAM } from './support/harness.mjs'
 
 /** @returns {'junction' | 'dir'} the unprivileged directory link for this platform. */
@@ -25,8 +26,8 @@ test('a worker that cannot start falls back to in-process conversion', async (t)
   await symlink(path.join(PLUGIN_ROOT, 'node_modules'), path.join(sandbox, 'node_modules'), linkType())
   await rename(path.join(sandbox, 'lib', 'worker-entry.js'), path.join(sandbox, 'lib', 'worker-entry.js.disabled'))
 
-  const { resolveConfig } = await import(path.join(sandbox, 'lib', 'config.js'))
-  const { Engine } = await import(path.join(sandbox, 'lib', 'engine.js'))
+  const { resolveConfig } = await import(pathToFileURL(path.join(sandbox, 'lib', 'config.js')).href)
+  const { Engine } = await import(pathToFileURL(path.join(sandbox, 'lib', 'engine.js')).href)
   const logs = []
   const logger = { info: () => {}, warn: message => logs.push(String(message)), error: () => {}, debug: () => {} }
   const config = resolveConfig({ engine: 'worker', workerStartTimeoutMs: 5000 })
@@ -73,8 +74,8 @@ test('a missing native binding reports actionable platform advice', async (t) =>
     )
   }
 
-  const { resolveConfig } = await import(path.join(sandbox, 'lib', 'config.js'))
-  const { Engine } = await import(path.join(sandbox, 'lib', 'engine.js'))
+  const { resolveConfig } = await import(pathToFileURL(path.join(sandbox, 'lib', 'config.js')).href)
+  const { Engine } = await import(pathToFileURL(path.join(sandbox, 'lib', 'engine.js')).href)
   const logs = []
   const logger = { info: () => {}, warn: (message) => logs.push(String(message)), error: () => {}, debug: () => {} }
   const engine = new Engine({ config: resolveConfig({ engine: 'worker', workerStartTimeoutMs: 5000 }), logger })

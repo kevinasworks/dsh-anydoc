@@ -124,7 +124,7 @@ test('allowedRoots blocks inputs and outputs outside the allow-list', async (t) 
   const blocked = await invokeTool(harness.tools, 'anydoc_convert', { sourcePath: outside })
   assert.equal(blocked.errorCode, 'PATH_OUTSIDE_ALLOWED_ROOTS')
   const ok = await invokeTool(harness.tools, 'anydoc_convert', { sourcePath: path.join(allowed, 'inside.docx') })
-  assert.equal(ok.success, true)
+  assert.equal(ok.success, true, JSON.stringify(ok))
   const badOutput = await invokeTool(harness.tools, 'anydoc_convert', {
     sourcePath: path.join(allowed, 'inside.docx'),
     outputDir: path.join(sandbox, 'elsewhere'),

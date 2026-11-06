@@ -43,8 +43,8 @@ test('isPathsInside matches Windows semantics including case and drives', () => 
   assert.equal(isPathInside('\\\\server\\share\\docs\\a.docx', '\\\\server\\share\\docs', { pathImpl: win32 }), true)
   assert.equal(isPathInside('\\\\server\\share\\other\\a.docx', '\\\\server\\share\\docs', { pathImpl: win32 }), false)
   // POSIX stays case-sensitive.
-  assert.equal(isPathInside('/Volumes/Docs/a.docx', '/Volumes/Docs'), true)
-  assert.equal(isPathInside('/Volumes/docs/a.docx', '/Volumes/Docs'), false)
+  assert.equal(isPathInside('/Volumes/Docs/a.docx', '/Volumes/Docs', { pathImpl: path.posix }), true)
+  assert.equal(isPathInside('/Volumes/docs/a.docx', '/Volumes/Docs', { pathImpl: path.posix }), false)
 })
 
 test('isWindowsAbsolute recognises drive and UNC input', () => {
