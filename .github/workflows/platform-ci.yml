@@ -1,8 +1,7 @@
 # Platform CI for dsh-anydoc.
 #
-# It exists so the Windows side can be verified by the platform itself instead
-# of by code review: macOS 15 (Apple silicon) and Windows x64 (x64)
-# both install the real native binary and execute the full suite.
+# Native macOS arm64/x64, Windows x64 and Linux arm64/x64 runners.
+# Alpine containers additionally cover musl on both Linux architectures.
 #
 # What each job proves:
 #   - npm install resolves the platform-specific @firecrawl/anydoc binding
@@ -25,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15-intel, windows-latest, ubuntu-24.04, ubuntu-24.04-arm]
+        os: [macos-15, macos-15-intel, windows-latest, ubuntu-24.04, ubuntu-24.04-arm]
     steps:
       - uses: actions/checkout@v4
 
