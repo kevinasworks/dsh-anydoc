@@ -1,8 +1,12 @@
 # 发布说明
 
-项目使用 GitHub 保存源码、Release 记录更新说明，并准备通过 npm 公共注册表分发可安装插件。源码与运行依赖安装分开管理；不在包中分发 AnyDoc 原生二进制。
+项目使用 GitHub 保存源码、Release 记录更新说明，并通过 npm 公共注册表分发可安装插件。源码与运行依赖安装分开管理；不在包中分发 AnyDoc 原生二进制。
 
 ## npm 包与首次发布
+
+`dsh-anydoc@0.2.1` 已于 2026-11-06 发布至 npm 官方注册表，`latest` 为 `0.2.1`。包页面：https://www.npmjs.com/package/dsh-anydoc 。
+
+后续自动发布的 GitHub 工作流已就绪，但 npm 端的 Trusted Publisher 授权尚未配置；在授权完成前不要把工作流视为已启用的自动发布。
 
 - 包名：`dsh-anydoc`；当前版本：`0.2.1`。
 - `package.json` 已移除阻止发布的 `private: true`，`publishConfig` 固定为 npm 官方源与公开访问。
