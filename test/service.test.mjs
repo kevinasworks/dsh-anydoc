@@ -228,6 +228,8 @@ test('the capability report needs no user document and its self test passes', as
   assert.equal(plain.anydocVersion, '0.2.4')
   assert.equal(plain.engine, 'worker')
   assert.equal(plain.nativeOk, true)
+  assert.ok(['supported', 'unsupported', 'unknown'].includes(plain.platformSupport), 'platformSupport is reported')
+  assert.equal(typeof plain.platformNote, 'string')
   assert.ok(plain.supportedExtensions.includes('docx'))
   assert.ok(plain.supportedExtensions.includes('pdf'))
 

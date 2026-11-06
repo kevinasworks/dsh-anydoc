@@ -22,6 +22,8 @@ import { mkdtemp, readFile, readdir, rm, stat } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 
+import { UPSTREAM_PREBUILT_TARGETS } from '../lib/platform.js'
+
 const REPO_ROOT = path.resolve(import.meta.dirname, '..')
 const OFFLINE = process.argv.includes('--offline')
 const NPM_CACHE = path.join(os.tmpdir(), 'anydoc-platform-check-cache')
@@ -49,9 +51,10 @@ function describeBinary(buffer) {
     const arch = cpuType === 0x0100000c ? 'arm64' : cpuType === 0x01000007 ? 'x86_64' : `cputype:0x${cpuType.toString(16)}`
     return { format: 'Mach-O 64', arch }
   }
-  if (buffer.length >= 20 && buffer[0] === 0x7f && buffer.toString('ascii', 1, 4) === 'ELF') {
-    const machine = buffer.readUInt16LE(18)
-    return { format: 'ELF', arch: machine === 62 ? 'x86_64' : machine === 183 ? 'arm64' : `machine:${machine}` }
+  if (buffer.length >= 20 && buffer[0] === 0x7f && buffer[1] === 0x45 && buffer[2] === 0x4c && buffer[3] === 0x46) {
+    const machine = buffer.readUInt16LE(0x12)
+    const arch = machine === 0x3e ? 'x86_64' : machine === 0xb7 ? 'arm64' : `machine:0x${machine.toString(16)}`
+    return { format: 'ELF', arch }
   }
   if (buffer.length >= 0x40 && buffer[0] === 0x4d && buffer[1] === 0x5a) {
     const peOffset = buffer.readUInt32LE(0x3c)
@@ -86,9 +89,26 @@ const anydocDir = path.join(REPO_ROOT, 'node_modules', '@firecrawl', 'anydoc')
 const anydocManifest = JSON.parse(await readFile(path.join(anydocDir, 'package.json'), 'utf8'))
 const optional = anydocManifest.optionalDependencies ?? {}
 const pinned = anydocManifest.version
+
+// Drift alarm: the plugin's matrix mirrors these exact targets. If upstream
+// adds or drops one, both this list and the docs must be revisited.
+const publishedTargets = Object.keys(optional)
+  .map((name) => name.replace('@firecrawl/anydoc-', ''))
+  .sort()
+const expectedTargets = [...UPSTREAM_PREBUILT_TARGETS].sort()
+if (publishedTargets.join(',') === expectedTargets.join(',')) {
+  record('target set', 'upstream prebuilt targets', 'PASS', `${publishedTargets.length} targets: ${publishedTargets.join(', ')}`)
+} else {
+  record('target set', 'upstream prebuilt targets', 'FAIL', `upstream now publishes [${publishedTargets.join(', ')}]; the plugin matrix expects [${expectedTargets.join(', ')}] — review lib/platform.js and PLATFORM_SUPPORT.md`)
+}
 for (const [name, expectation] of [
   ['@firecrawl/anydoc-darwin-arm64', 'Apple silicon macOS'],
+  ['@firecrawl/anydoc-darwin-x64', 'macOS Intel / Rosetta'],
   ['@firecrawl/anydoc-win32-x64-msvc', 'Windows 10/11 x64'],
+  ['@firecrawl/anydoc-linux-x64-gnu', 'Linux x64 (glibc)'],
+  ['@firecrawl/anydoc-linux-arm64-gnu', 'Linux arm64 (glibc)'],
+  ['@firecrawl/anydoc-linux-x64-musl', 'Linux x64 (musl)'],
+  ['@firecrawl/anydoc-linux-arm64-musl', 'Linux arm64 (musl)'],
 ]) {
   const version = optional[name]
   if (version === undefined) record('optionalDependency', `${name} (${expectation})`, 'FAIL', 'not declared by the published package')
@@ -120,13 +140,23 @@ if (localTarget === null) {
   }
 }
 
-// 3. The published Windows binding is an x64 PE image.
-if (OFFLINE) {
-  record('published binary', 'win32-x64-msvc', 'SKIP', '--offline')
-} else {
-  const sandbox = await mkdtemp(path.join(os.tmpdir(), 'anydoc-win32-check-'))
+// 3. Published bindings for the other targets this plugin claims to run on.
+const PUBLISHED = [
+  { pkg: 'win32-x64-msvc', format: 'PE', arch: 'x64', label: 'Windows 10/11 x64' },
+  { pkg: 'darwin-x64', format: 'Mach-O 64', arch: 'x86_64', label: 'macOS Intel / Rosetta' },
+  { pkg: 'linux-x64-gnu', format: 'ELF', arch: 'x86_64', label: 'Linux x64 (glibc)' },
+  { pkg: 'linux-arm64-gnu', format: 'ELF', arch: 'arm64', label: 'Linux arm64 (glibc)' },
+  { pkg: 'linux-x64-musl', format: 'ELF', arch: 'x86_64', label: 'Linux x64 (musl)' },
+  { pkg: 'linux-arm64-musl', format: 'ELF', arch: 'arm64', label: 'Linux arm64 (musl)' },
+]
+for (const target of PUBLISHED) {
+  if (OFFLINE) {
+    record('published binary', target.pkg, 'SKIP', '--offline')
+    continue
+  }
+  const sandbox = await mkdtemp(path.join(os.tmpdir(), `anydoc-${target.pkg}-check-`))
   try {
-    execFileSync(NPM, ['pack', `@firecrawl/anydoc-win32-x64-msvc@${pinned}`, '--silent'], {
+    execFileSync(NPM, ['pack', `@firecrawl/anydoc-${target.pkg}@${pinned}`, '--silent'], {
       cwd: sandbox,
       timeout: 120_000,
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -140,13 +170,13 @@ if (OFFLINE) {
     if (binary === undefined) throw new Error('no .node file in the published tarball')
     const described = describeBinary(await head(binary, 4096))
     const size = (await stat(binary)).size
-    if (described.format === 'PE' && described.arch === 'x64') {
-      record('published binary', 'win32-x64-msvc', 'PASS', `${path.basename(binary)} · PE x64 · ${size} bytes`)
+    if (described.format === target.format && described.arch === target.arch) {
+      record('published binary', `${target.pkg} (${target.label})`, 'PASS', `${path.basename(binary)} · ${described.format} ${described.arch} · ${size} bytes`)
     } else {
-      record('published binary', 'win32-x64-msvc', 'FAIL', `${described.format} ${described.arch}`)
+      record('published binary', `${target.pkg} (${target.label})`, 'FAIL', `${described.format} ${described.arch}`)
     }
   } catch (error) {
-    record('published binary', 'win32-x64-msvc', 'SKIP', (error instanceof Error ? error.message : String(error)).slice(0, 120))
+    record('published binary', `${target.pkg} (${target.label})`, 'SKIP', (error instanceof Error ? error.message : String(error)).slice(0, 120))
   } finally {
     await rm(sandbox, { recursive: true, force: true }).catch(() => {})
   }
@@ -169,4 +199,4 @@ if (skipped.length > 0) {
   console.log(`部分检查跳过（离线或注册表不可达）：${skipped.map((row) => row.target).join(', ')}`)
   process.exit(2)
 }
-console.log('PASS: 当前平台绑定与检查的上游产物均已就绪')
+console.log('PASS: macOS arm64 / macOS x64 / Windows x64 / Linux x64+arm64（glibc、musl）的预编译产物均已就绪')

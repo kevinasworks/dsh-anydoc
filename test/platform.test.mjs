@@ -12,6 +12,8 @@ import path from 'node:path'
 import test from 'node:test'
 import {
   classifyReadError,
+  describePlatformSupport,
+  UPSTREAM_PREBUILT_TARGETS,
   classifyWriteError,
   describeLongPathRisk,
   isPathInside,
@@ -115,4 +117,32 @@ test('filesystem errors map to actionable codes', () => {
   assert.match(classifyWriteError({ code: 'EBUSY' }, 'C:\\a.md').message, /locked/)
   assert.equal(classifyWriteError({ code: 'ENOSPC' }, 'C:\\a.md').code, 'OUTPUT_UNWRITABLE')
   assert.equal(classifyWriteError({ code: 'EROFS' }, 'C:\\a.md').code, 'OUTPUT_UNWRITABLE')
+})
+
+test('platform support matrix covers the published targets', () => {
+  for (const [platform, arch] of [['darwin', 'arm64'], ['darwin', 'x64'], ['win32', 'x64'], ['linux', 'x64'], ['linux', 'arm64']]) {
+    const support = describePlatformSupport(platform, arch)
+    assert.equal(support.status, 'supported', `${platform}/${arch}`)
+    assert.equal(support.key, `${platform}/${arch}`)
+    assert.ok(support.note.length > 20)
+  }
+  // Windows on ARM has no upstream binding; the hint must say what to do instead.
+  const winArm = describePlatformSupport('win32', 'arm64')
+  assert.equal(winArm.status, 'unsupported')
+  assert.match(winArm.note, /no win32-arm64 binding/)
+  assert.match(winArm.hint, /x64 build of DSH|x64 machine/)
+  // Anything outside the published target list is unsupported, not "maybe".
+  for (const [platform, arch] of [['freebsd', 'x64'], ['aix', 'ppc64'], ['win32', 'ia32'], ['linux', 'riscv64']]) {
+    const support = describePlatformSupport(platform, arch)
+    assert.equal(support.status, 'unsupported', `${platform}/${arch}`)
+    assert.match(support.note, /publishes no binding/)
+    assert.equal(typeof support.hint, 'string')
+  }
+  // The list itself is the single source of truth for the checker and docs.
+  assert.deepEqual(UPSTREAM_PREBUILT_TARGETS, [
+    'darwin-arm64', 'darwin-x64',
+    'linux-arm64-gnu', 'linux-arm64-musl',
+    'linux-x64-gnu', 'linux-x64-musl',
+    'win32-x64-msvc',
+  ])
 })

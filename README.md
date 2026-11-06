@@ -31,7 +31,7 @@ DSH 的模型可以直接读文本文件，但 `.docx` / `.xlsx` / `.pptx` / `.p
 | --- | --- |
 | `anydoc_convert` | 单文件转换。返回结构化结果（`success`、`detectedFormat`、`outputPath`、`markdownPreview`、`truncated`、`warnings`、`errorCode` 等），完整 Markdown 写入文件。 |
 | `anydoc_batch_convert` | 批量转换。支持文件列表或单目录（默认不递归）、并发上限、失败隔离，返回成功/失败/跳过统计。 |
-| `anydoc_capabilities` | 只读健康检查。返回插件与 AnyDoc 版本、原生绑定状态、当前引擎、支持格式、OCR 策略、资源限制；`selfTest: true` 时用内置微型 CSV 走完整链路，**不读取任何用户文档**。 |
+| `anydoc_capabilities` | 只读健康检查。返回插件与 AnyDoc 版本、原生绑定状态、当前平台及 `platformSupport`（上游是否提供该平台的绑定）、当前引擎、支持格式、OCR 策略、资源限制；`selfTest: true` 时用内置微型 CSV 走完整链路，**不读取任何用户文档**。 |
 
 ## 支持的格式
 
@@ -132,12 +132,17 @@ format: docx (content) · 13,902 chars · 37,767 input bytes · 41 ms · engine:
 
 ## 平台支持
 
+支持范围严格等于上游 `@firecrawl/anydoc@0.2.4` 的 7 个预编译目标；上游没有产物的一律不支持。
+
+**macOS（Apple 芯片）是本插件的主要平台**：作者自用，107 项测试与真实 Tool Call 都在该平台完成，功能与回归以它为准。其余平台跟随上游产物尽力支持，但不在日常验证范围内。
+
 | 平台 | 架构 | 状态 |
 | --- | --- | --- |
-| **macOS（Apple 芯片）** | arm64 | **完整支持，已实机运行**（106 项测试 + 真实 Tool Call） |
-| macOS（Rosetta / Intel） | x64 | 支持（随上游 `darwin-x64` 产物，未实机测） |
+| **macOS（Apple 芯片）** | arm64 | **完整支持，已实机运行**（107 项测试 + 真实 Tool Call） |
+| macOS（Rosetta / Intel） | x64 | x64 依赖链已在 Rosetta 下实测通过；**未在 Intel 实机验证** |
 | **Windows 10 / 11** | x64 | **代码与打包已就绪，未实机运行** |
-| Windows on ARM | arm64 | **不支持**：上游 AnyDoc 没有 `win32-arm64` 预编译产物 |
+| Windows on ARM | arm64 | **不支持**：上游 AnyDoc 只发布 x64 绑定；`anydoc_capabilities` 会报 `platformSupport: unsupported` 并给出替代方案 |
+| Linux | x64 / arm64 | **产物齐备并已核验（ELF，glibc 与 musl），未在 Linux 实机运行** |
 
 ```bash
 # 每台机器各自执行一次：原生绑定不跨平台共用
@@ -249,7 +254,7 @@ node test/check-compat.mjs
 
 ```bash
 cd /path/to/dsh-anydoc
-npm test                    # 106 个自动化用例
+npm test                    # 107 个自动化用例
 node test/bench.mjs         # 本机实测性能
 node test/check-updates.mjs   # 是否需要升级 / 重新适配
 node test/check-platforms.mjs # 本机与 Windows 的预编译产物是否就绪

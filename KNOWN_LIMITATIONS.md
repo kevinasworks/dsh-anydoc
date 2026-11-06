@@ -69,8 +69,10 @@ conversion local, so no remote OCR is attempted. …
 | --- | --- | --- |
 | ~~真实进程重启后的持久化~~ | **PASS** | 已于 DSH 重启后实测：工具仍可用、自检通过、加载的是最新代码（见 TEST_REPORT 第八节） |
 | **Windows 实机运行** | NOT_TESTED | 本机为 macOS arm64。Windows 一侧完成：平台代码审计与加固、win32 规则单测（`path.win32`）、`win32-x64-msvc` 产物核验（PE x64）、`npm install --os=win32 --cpu=x64` 安装选择验证。未在 Windows 上执行测试与 Tool Call，详见 [PLATFORM_SUPPORT.md](PLATFORM_SUPPORT.md) 的验收清单 |
-| Windows on ARM（arm64） | LIMITATION | 上游 AnyDoc 不发布 `win32-arm64` 预编译产物，安装后没有原生绑定；插件会返回 `NATIVE_UNAVAILABLE` 并说明原因 |
-| macOS Intel / Rosetta | NOT_TESTED | 上游提供 `darwin-x64` 产物；本机只有 Apple 芯片，未实机验证 |
+| 上游未发布的目标（Windows ARM、Windows ia32、Linux riscv64 等） | LIMITATION（按上游范围不做） | 支持范围以 `lib/platform.js` 的 `UPSTREAM_PREBUILT_TARGETS` 为准，超出即 `unsupported`。|
+| Windows on ARM（arm64） | LIMITATION | 上游 AnyDoc 只发布 `win32-x64-msvc`，没有 arm64 绑定，属于上游能力边界。插件会报 `platformSupport: unsupported` 与 `NATIVE_UNAVAILABLE`，并提示改用 x64 版 DSH（由 Windows x64 模拟运行）或 x64 机器；**未在 Windows ARM 实机验证** |
+| Linux（x64 / arm64，glibc 与 musl） | NOT_TESTED | 上游四个 Linux 绑定均已下载核验为 ELF（架构正确），代码无 Linux 特化路径；但本机无容器运行时或 Linux VM，**未在 Linux 上跑测试或真实转换** |
+| macOS Intel（x64） | NOT_TESTED（依赖链已测） | 已在 Apple 芯片上用 Rosetta 跑通 x64 链路：x64 Node v24.22.2 + `anydoc.darwin-x64.node`，docx/xlsx 转换与自检通过。未在 Intel 硬件与 x64 Electron 宿主上验证 |
 | Junction / 网络共享路径逃逸（Windows） | NOT_TESTED | 判定走 `realpath` 后比对 `allowedRoots`，目录递归用 realpath 集合防环；macOS 符号链接已实测，Windows Junction 与 SMB 路径未实机执行 |
 | 中文文本型 PDF | NOT_TESTED | 未生成中文 PDF 样本；PDF 只用英文样本验证 |
 | `MISSING_PART` 错误码 | NOT_TESTED | 未构造出稳定触发样本（映射已实现） |

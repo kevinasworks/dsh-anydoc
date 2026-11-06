@@ -2,6 +2,31 @@
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循语义化版本。
 
+## [0.2.1] — 2026-11-06
+
+补全平台支持自检，修复 Windows 路径与跨平台测试问题，并加入覆盖上游全部 7 个预编译目标的持续验证。
+
+### 新增
+
+- `anydoc_capabilities` 增加 `platformSupport`、`platformNote`，直接报告当前 OS/CPU 的上游绑定支持状态及建议。
+- 支持矩阵覆盖 macOS arm64/x64、Windows x64、Linux x64/arm64（glibc 与 musl）；Windows ARM64 等无上游绑定的平台明确提示不支持。
+- 平台核验增加上游目标集漂移检查、Linux ELF 与 macOS x64 产物检查。
+- CI 覆盖 Apple 芯片 Mac、Intel Mac、Windows x64、Linux x64/ARM64 glibc 与 Alpine/musl。
+
+### 修复
+
+- Windows 白名单路径统一使用原生 realpath，避免 DOS 8.3 短名称与长名称不一致导致正常文件被拒绝。
+- 测试文档禁用 Git 换行转换，防止扫描 PDF 字节偏移损坏及错误码误判。
+- 修复 Windows 动态导入路径、POSIX 大小写测试、临时目录测试与沙箱链接方式。
+- 超时测试不再依赖真实文档处理耗时，验证 worker 终止及后续恢复。
+- 平台产物检查按实际运行平台核验绑定，不再写死 macOS。
+- 同步锁文件中的项目版本号及宿主兼容声明；保留 `private: true`，不发布 npm。
+
+### 说明
+
+- 解析引擎继续固定为 AnyDoc 0.2.4；文档转换仍为本地离线，不启用 OCR。
+- 平台 CI 与 DSH 包级验证不等于各平台桌面界面的完整交互验收。
+
 ## [0.2.0] — 2026-11-05
 
 平台兼容：在 Apple 芯片 macOS 上实机验证，并把 Windows 10+ x64 的代码、打包与安装路径全部落实。
@@ -38,6 +63,7 @@
 - `package.json` 的 `files` 增加 `licenses/*` 与 `PUBLISHING.md`，确保安装包携带必需许可材料。
 - 新增 [PUBLISHING.md](PUBLISHING.md)：发布形态、已执行检查、GitHub 元数据建议、待确认事项与发布步骤。
 - 验证：`npm pack` 产物 29 个文件，解包确认含 `LICENSE`、`THIRD_PARTY_NOTICES.md`、`licenses/`；在隔离目录安装该 tgz 后成功注册三个工具并完成一次真实 docx 转换。
+- 补充验证 macOS x64 依赖链：在 Apple 芯片上用 x64 Node v24.22.2（Rosetta）安装并运行，装出 `anydoc.darwin-x64.node`（Mach-O x86_64），docx/xlsx 转换与自检均通过；`test/check-platforms.mjs` 同步增加 `darwin-x64` 产物核验。Intel 实机与 x64 Electron 仍未验证。
 
 ### 验证
 

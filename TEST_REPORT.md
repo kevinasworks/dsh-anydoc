@@ -1,7 +1,7 @@
 # 测试报告
 
 测试日期：2026-11-04
-结论：**106 个自动化用例全部通过**；并在**运行中的 DSH（0.2.2-rc.1）内完成真实 Tool Call**。未验证项单列在 [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md)。
+结论：**107 个自动化用例全部通过**；并在**运行中的 DSH（0.2.2-rc.1）内完成真实 Tool Call**。未验证项单列在 [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md)。
 
 标记说明：
 
@@ -40,8 +40,8 @@
 | `test/privacy.test.mjs` | 5 | 5 | 0 | 静态无 hosted OCR、断网进程内转换、断网 worker 转换、API Key 无关、OCR 失败不提上传 |
 | `test/plugin.test.mjs` | 8 | 8 | 0 | `apply()` 契约、注册 3 工具、卸载释放、配置默认值与裁剪、schema 校验、格式表 |
 | `test/fallback.test.mjs` | 2 | 2 | 0 | 故障注入：worker 入口缺失时回退 in-process；原生绑定缺失时给出平台化修复指引 |
-| `test/platform.test.mjs` | 7 | 7 | 0 | win32 语义（`path.win32`）：UNC 前缀、大小写/跨盘包含判定、保留设备名、NTFS 冒号、长路径、文件占用错误映射 |
-| **合计** | **106** | **106** | **0** | |
+| `test/platform.test.mjs` | 8 | 8 | 0 | win32 语义（`path.win32`）：UNC 前缀、大小写/跨盘包含判定、保留设备名、NTFS 冒号、长路径、文件占用错误映射；平台支持矩阵（darwin/win32/linux/未知组合） |
+| **合计** | **107** | **107** | **0** | |
 
 执行耗时约 3.9 s。
 
@@ -270,7 +270,7 @@ The linked in dependency will not resolve the peer dependencies from the target 
 | AnyDoc 版本 | 锁定并安装 `0.2.4`；npm `latest` = `0.2.4`，上游最新 tag `v0.2.4`，远端 HEAD 仍为 `e7178e0…` → **未变化** |
 | 插件运行态 | `anydoc_capabilities {selfTest:true}` → `native binding: ok · worker: ok`、`self test: passed` |
 | 真实转换 | `docx-text.docx` → 1,295 字符，15.9 ms |
-| 自动化测试 | 106 / 106 通过 |
+| 自动化测试 | 107 / 107 通过 |
 | 结论 | **不需要升级，也不需要重新适配** |
 
 同时观察到宿主环境的**他人变更**（非本插件引起，供排查参考）：
@@ -308,7 +308,7 @@ The linked in dependency will not resolve the peer dependencies from the target 
 | 7 | 中文表格生成器未写入单元格文本 | 测试样本生成脚本 bug | 修正 `generate.py` 并重新生成全部样本 |
 | 8 | 失败渲染缺少处理提示 | `hintForCode` 只覆盖部分错误码 | 补齐 `FILE_NOT_FOUND`/`EMPTY_FILE`/`PERMISSION_DENIED` 等 |
 
-每次修复后均重跑相关用例并执行完整回归（最终 106 项）。上述问题均在**插件自身代码或测试样本**中，没有修改上游 AnyDoc，也没有为了通过测试而放宽断言或吞异常。
+每次修复后均重跑相关用例并执行完整回归（最终 107 项）。上述问题均在**插件自身代码或测试样本**中，没有修改上游 AnyDoc，也没有为了通过测试而放宽断言或吞异常。
 
 ---
 
@@ -359,7 +359,7 @@ DSH         dsh-tools     schemastery  cordis   result
 | 项 | 结果 |
 | --- | --- |
 | 三条目标 DSH 线的包级兼容 | **PASS** |
-| 当前安装的 0.2.2-rc.1 回归（106 项） | **PASS** |
+| 当前安装的 0.2.2-rc.1 回归（107 项） | **PASS** |
 | 版本范围边界 | **PASS**（semver 7 核对，0 处不符） |
 | 真实旧版 DSH 桌面端整体启动 | **NOT_TESTED**（见 KNOWN_LIMITATIONS） |
 
@@ -399,8 +399,16 @@ DSH         dsh-tools     schemastery  cordis   result
 | macOS 生产安装（仅 dependencies） | PASS — 装上 `anydoc` + `anydoc-darwin-arm64`，实跑转换 1,295 字符 |
 | Windows x64 安装选择（`--os=win32 --cpu=x64`） | PASS — 只装 `anydoc-win32-x64-msvc`，二进制 PE machine `0x8664` |
 | Windows ARM 安装（`--os=win32 --cpu=arm64`） | 预期失败 — 只装到 `anydoc`，无原生绑定；插件报 `NATIVE_UNAVAILABLE` 并说明原因 |
+| 上游 `darwin-x64` 产物 | PASS — `anydoc.darwin-x64.node`，Mach-O 64 **x86_64**，7,456,808 字节 |
+| 上游 Linux 产物（glibc / musl，x64 / arm64） | PASS — 四个 `.node` 均为 ELF：`linux-x64-gnu` 8,189,088 B（x86_64）、`linux-arm64-gnu` 7,222,168 B（arm64）、`linux-x64-musl` 8,206,864 B（x86_64）、`linux-arm64-musl` 7,230,808 B（arm64） |
+| 平台支持矩阵（`platformSupport`） | PASS — 单测覆盖 darwin/win32/linux 与未知组合；win32/arm64 返回 `unsupported` 并带替代方案提示 |
+| macOS x64 依赖链（Apple 芯片 + Rosetta，2026-11-06） | PASS — x64 Node v24.22.2 + `anydoc.darwin-x64.node`：插件注册 3 个工具，docx 1,295 字符、xlsx 410 字符转换成功，`anydoc_capabilities` 报 `arch x64`、`selfTest passed` |
 
 ### 12.4 未执行
+
+- macOS Intel 实机与 x64 Electron 宿主：Rosetta 测试只覆盖 x64 进程内的插件与原生绑定，不代表 Intel 硬件已验证。
+- Linux 运行验证：本机无容器运行时与 Linux VM，只核验了四个 ELF 产物与代码的平台无关性，未跑测试或真实转换。
+- Windows on ARM 运行验证：无设备；仅验证了“检测到 unsupported 并给出替代方案”的行为。
 
 Windows 实机上的测试执行、真实 Tool Call、进程隔离、文件占用与长路径都只有**代码/打包级验证**，没有运行环境。逐项矩阵与验收清单见 [PLATFORM_SUPPORT.md](PLATFORM_SUPPORT.md)。
 
@@ -433,7 +441,7 @@ anydoc_batch_convert {"directory": "<含文档的目录>"}
 | 安装包内容 | `npm pack`（29 个文件）后解包核对 | 含 `LICENSE`、`THIRD_PARTY_NOTICES.md`、`licenses/`；不含 `test/`、`node_modules/`、`.backup/`、`.audit/` |
 | 包内隐私 | 对解包后的全部文件检索个人路径、用户名与凭据模式 | 无命中 |
 | 隔离安装与功能 | 在临时目录 `npm install <tgz> --omit=dev`，补装宿主 peer 后加载包入口 | 三个工具注册成功；`anydoc_capabilities` 自检 `passed`；真实 docx 转换 1,295 字符 |
-| 回归 | `npm test` / `check:compat` / `check:platforms` | 106/106 通过；三条 DSH 线 PASS；平台产物 PASS |
+| 回归 | `npm test` / `check:compat` / `check:platforms` | 107/107 通过；三条 DSH 线 PASS；平台产物 PASS |
 
 结论见 `PUBLISHING.md`：版权署名已确认为 **Kevin Zheng** 后，源码公开与安装包分发均为 **READY**；GitHub 直接安装为 **NOT_TESTED**（无远程仓库）。
 

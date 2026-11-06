@@ -1,6 +1,6 @@
 {
   "name": "dsh-anydoc",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Local, offline document-to-Markdown parsing as native DeepSeek Harness tools for Windows 10+ x64 and Apple-silicon macOS, powered by Firecrawl AnyDoc.",
   "author": "Kevin Zheng",

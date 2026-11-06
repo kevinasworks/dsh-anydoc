@@ -43,6 +43,7 @@
 | `lib/worker-entry.js` | 子进程侧协议实现 | 只做解析；不写文件、不做路径判断 |
 | `lib/convert-core.js` | 两种模式共享的转换核心 | 从不向 AnyDoc 传 options，杜绝 hosted OCR |
 | `lib/paths.js` | 文件系统安全边界 | realpath 解析后再判定；输出名不可逃逸 |
+| `lib/platform.js` | 平台规则与上游目标矩阵 | 纯函数、可注入 `path`，使 Windows 分支可在 macOS 上单测；`UPSTREAM_PREBUILT_TARGETS` 是支持范围的唯一事实来源 |
 | `lib/formats.js` | 支持格式表 | 仅用于提示与目录扫描过滤，不替代内容检测 |
 | `lib/errors.js` | 错误码词表与模型可读提示 | 上游 code → 插件 code 的映射集中在此 |
 
