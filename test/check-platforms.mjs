@@ -92,22 +92,26 @@ for (const [name, expectation] of [
   else record('optionalDependency', `${name} (${expectation})`, 'PASS', `version ${version}`)
 }
 
-// 2. The macOS binding installed here is an arm64 Mach-O.
-const darwinDir = path.join(REPO_ROOT, 'node_modules', '@firecrawl', 'anydoc-darwin-arm64')
-try {
-  const binary = await findFile(darwinDir, '.node')
-  if (binary === undefined) record('installed binary', 'darwin-arm64', 'FAIL', 'no .node file')
-  else {
-    const described = describeBinary(await head(binary, 64))
+// 2. Check the binding for this runner, not a hard-coded macOS package.
+const localTarget = process.platform === 'darwin'
+  ? { pkg: `darwin-${process.arch}`, format: 'Mach-O 64', arch: process.arch === 'x64' ? 'x86_64' : process.arch }
+  : process.platform === 'win32'
+    ? { pkg: `win32-${process.arch}-msvc`, format: 'PE', arch: process.arch }
+    : null
+if (localTarget === null) {
+  record('installed binary', `${process.platform}/${process.arch}`, 'FAIL', 'local binary verification is not implemented for this platform')
+} else {
+  try {
+    const directory = path.join(REPO_ROOT, 'node_modules', '@firecrawl', `anydoc-${localTarget.pkg}`)
+    const binary = await findFile(directory, '.node')
+    if (binary === undefined) throw new Error('no .node file')
+    const described = describeBinary(await head(binary, 4096))
     const size = (await stat(binary)).size
-    if (described.format === 'Mach-O 64' && described.arch === 'arm64') {
-      record('installed binary', 'darwin-arm64', 'PASS', `${path.basename(binary)} · ${described.format} ${described.arch} · ${size} bytes`)
-    } else {
-      record('installed binary', 'darwin-arm64', 'FAIL', `${described.format} ${described.arch}`)
-    }
+    const result = described.format === localTarget.format && described.arch === localTarget.arch ? 'PASS' : 'FAIL'
+    record('installed binary', localTarget.pkg, result, `${path.basename(binary)} · ${described.format} ${described.arch} · ${size} bytes`)
+  } catch (error) {
+    record('installed binary', localTarget.pkg, 'FAIL', error instanceof Error ? error.message : String(error))
   }
-} catch (error) {
-  record('installed binary', 'darwin-arm64', 'FAIL', error instanceof Error ? error.message : String(error))
 }
 
 // 3. The published Windows binding is an x64 PE image.

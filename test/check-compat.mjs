@@ -84,7 +84,7 @@ async function checkLine(entry) {
   await cp(path.join(REPO_ROOT, 'lib'), path.join(sandbox, 'lib'), { recursive: true })
   await cp(path.join(REPO_ROOT, 'index.js'), path.join(sandbox, 'index.js'))
   await cp(HARNESS, path.join(sandbox, 'run-harness.mjs'))
-  await symlink(path.join(REPO_ROOT, 'node_modules', '@firecrawl'), path.join(sandbox, 'node_modules', '@firecrawl'), 'dir')
+  await symlink(path.join(REPO_ROOT, 'node_modules', '@firecrawl'), path.join(sandbox, 'node_modules', '@firecrawl'), process.platform === 'win32' ? 'junction' : 'dir')
 
   for (const [key, name] of [['schemastery', '@deepseek-ai/schemastery'], ['cordis', '@deepseek-ai/cordis']]) {
     try {
