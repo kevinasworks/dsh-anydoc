@@ -1,8 +1,7 @@
 # Platform CI for dsh-anydoc.
 #
-# Dormant until this directory is pushed to a Git remote that runs Actions.
 # It exists so the Windows side can be verified by the platform itself instead
-# of by code review: macOS 14 (Apple silicon) and Windows Server 2022 (x64)
+# of by code review: macOS 15 (Apple silicon) and Windows x64 (x64)
 # both install the real native binary and execute the full suite.
 #
 # What each job proves:
@@ -26,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-14, windows-latest]
+        os: [macos-15, windows-latest]
     steps:
       - uses: actions/checkout@v4
 

@@ -42,10 +42,21 @@ test('a per-file timeout terminates the worker process', async (t) => {
   t.after(harness.dispose)
   await harness.engine.probe()
   const liveBefore = harness.engine.pool.live.size
+  // Make the response absent deterministically, rather than betting that a
+  // real conversion takes longer than the platform's timer resolution.
+  const [handle] = harness.engine.pool.live
+  let dispatched = false
+  handle.child.send = (message) => {
+    assert.equal(message.type, 'convert')
+    dispatched = true
+    return true
+  }
   await assert.rejects(
-    harness.engine.convert({ file: DOCX, wantAssets: false, maxAssetBytes: 0 }, { timeoutMs: 1 }),
+    harness.engine.convert({ file: DOCX, wantAssets: false, maxAssetBytes: 0 }, { timeoutMs: 30 }),
     (error) => error.code === 'TIMEOUT',
   )
+  assert.equal(dispatched, true, 'the request reached worker dispatch')
+  assert.equal(handle.child.killed, true, 'the worker received a kill signal')
   assert.equal(harness.engine.pool.live.size, liveBefore - 1, 'the timed-out worker must be gone')
   // The pool recovers for the next conversion.
   const recovered = await harness.engine.convert({ file: DOCX, wantAssets: false, maxAssetBytes: 0 })

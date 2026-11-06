@@ -9,6 +9,7 @@ import test from 'node:test'
 import { mkdtempSync, realpathSync, rmSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { stripWindowsPrefix } from '../lib/platform.js'
 import { Config, defaultOutputRoot, resolveConfig } from '../lib/config.js'
 import { SUPPORTED_EXTENSIONS, extensionOf, hasSupportedExtension } from '../lib/formats.js'
 import { apply, inject, name } from '../index.js'
@@ -131,7 +132,7 @@ test('resolveConfig ignores unusable allow-list entries', (t) => {
   const warnings = []
   const config = resolveConfig({ allowedRoots: ['relative/path', path.join(directory, 'missing'), directory] }, { warn: message => warnings.push(message) })
   assert.equal(config.allowedRoots.length, 1, String(config.allowedRoots))
-  assert.equal(config.allowedRoots[0], realpathSync(directory))
+  assert.equal(config.allowedRoots[0], stripWindowsPrefix(realpathSync.native(directory)))
   assert.equal(warnings.length, 2)
 })
 

@@ -8,6 +8,7 @@ import { copyFile, mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from
 import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
+import { realpathDeep } from '../lib/paths.js'
 import { createHarness, GENERATED, invokeTool, renderTool, UPSTREAM } from './support/harness.mjs'
 
 /**
@@ -121,6 +122,7 @@ test('allowedRoots blocks inputs and outputs outside the allow-list', async (t) 
 
   const harness = await createHarness({ config: { allowedRoots: [allowed], outputRoot: allowed } })
   t.after(harness.dispose)
+  assert.deepEqual(harness.config.allowedRoots, [await realpathDeep(allowed)], 'configured roots and input paths use identical canonical names')
   const blocked = await invokeTool(harness.tools, 'anydoc_convert', { sourcePath: outside })
   assert.equal(blocked.errorCode, 'PATH_OUTSIDE_ALLOWED_ROOTS')
   const ok = await invokeTool(harness.tools, 'anydoc_convert', { sourcePath: path.join(allowed, 'inside.docx') })
